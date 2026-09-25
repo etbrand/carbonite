@@ -1,0 +1,47 @@
+{
+  "name": "srcjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "vite build",
+    "watch": "vite build --watch"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "dependencies": {
+    "@carbon/web-components": "^2.64.0",
+    "sass": "^1.104.1"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "@ibm/plex-serif@2.0.0": true,
+    "@ibm/plex-sans-thai@1.1.0": true,
+    "@ibm/plex-sans-thai-looped@1.1.0": true,
+    "@ibm/plex-sans-hebrew@1.1.0": true,
+    "@ibm/plex-sans-devanagari@1.1.0": true,
+    "@ibm/plex-sans-arabic@1.1.0": true,
+    "@ibm/plex-sans@1.1.0": true,
+    "@ibm/plex-mono@2.5.0": true,
+    "@ibm/plex@6.4.1": true,
+    "@carbon/icons-react@11.88.0": true,
+    "@carbon/react@1.116.0": true,
+    "@carbon/icon-helpers@10.47.0": true,
+    "@carbon/icons@11.89.0": true,
+    "@carbon/styles@1.116.0": true,
+    "@carbon/utilities@0.26.0": true,
+    "@carbon/colors@11.59.0": true,
+    "@carbon/feature-flags@1.10.0": true,
+    "@carbon/grid@11.63.0": true,
+    "@carbon/layout@11.60.0": true,
+    "@carbon/motion@11.53.0": true,
+    "@carbon/themes@11.82.0": true,
+    "@carbon/type@11.68.0": true,
+    "@carbon/web-components@2.64.0": true,
+    "esbuild@0.28.2": true
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "vite": "^8.3.0"
+  }
+}
