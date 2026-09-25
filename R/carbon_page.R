@@ -25,6 +25,7 @@ carbon_header <- function(
 carbon_page <- function(
   ...,
   title = "Application",
+  sidebar = NULL,
   default_route = "overview"
 ) {
   page <- htmltools::tagList(
@@ -35,6 +36,7 @@ carbon_page <- function(
       class = "carbon-app",
       `data-default-route` = default_route,
       carbon_header(title),
+      sidebar,
       tags$main(
         id = "carbon-main",
         class = "carbon-main",
@@ -49,18 +51,14 @@ carbon_nav_item <- function(
   route,
   label
 ) {
-  tags$button(
-    label,
-    `data-carbon-nav` = "",
-    `data-route` = route,
-    class = "carbon-nav-item"
-  )
-}
-
-carbon_nav <- function(...) {
-  tags$nav(
-    class = "carbon-nav",
-    ...
+  htmltools::tag(
+    "cds-side-nav-link",
+    list(
+      href = paste0("#", route),
+      `data-route` = route,
+      `data-carbon-nav` = "",
+      label
+    )
   )
 }
 
@@ -72,5 +70,12 @@ carbon_panel <- function(
     id = id,
     class = "carbon-panel",
     ...
+  )
+}
+
+carbon_sidebar <- function(...) {
+  htmltools::tag(
+    "cds-side-nav",
+    list(...)
   )
 }

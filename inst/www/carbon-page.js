@@ -49,6 +49,7 @@ window.addEventListener(
 document.addEventListener("click", e => {
     const nav = e.target.closest("[data-carbon-nav]");
     if (!nav) return;
+    e.preventDefault();
     const route = nav.dataset.route;
     location.hash = route;
 });

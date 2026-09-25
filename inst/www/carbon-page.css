@@ -1,5 +1,7 @@
 /* Eventually replace with Carbon spacing tokens */
 .carbon-main {
-    padding-top: 3rem;
+    padding-top: 4rem;
+    padding-left: 17rem;
+    padding-right: 1rem;
     min-height: 100vh;
 }
