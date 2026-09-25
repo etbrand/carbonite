@@ -1,7 +1,38 @@
 /* Eventually replace with Carbon spacing tokens */
+.carbon-app {
+    display: grid;
+    min-height: calc(100vh - 3rem);
+}
+
 .carbon-main {
     padding-top: 4rem;
-    padding-left: 17rem;
+    padding-left: 1rem;
     padding-right: 1rem;
-    min-height: 100vh;
+    min-width: 0;
+    overflow: auto;
+}
+
+@media (min-width: 1056px) {
+    .carbon-app {
+        grid-template-columns: 16rem 1fr;
+    }
+
+    cds-side-nav {
+        position: static;
+        width: 16rem;
+    }
+}
+
+@media (max-width: 1055px) {
+    .carbon-app {
+        grid-template-columns: 1fr;
+    }
+
+    cds-side-nav {
+        position: fixed;
+        top: 3rem;
+        left: 0;
+        width: 16rem;
+        z-index: 1000;
+    }
 }

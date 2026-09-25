@@ -14,6 +14,7 @@ carbon_header <- function(
 ) {
   htmltools::tagList(
     cds_header(
+      htmltools::tag("cds-header-menu-button", list()),
       cds_header_name(
         title,
         href = "#"
@@ -76,6 +77,6 @@ carbon_panel <- function(
 carbon_sidebar <- function(...) {
   htmltools::tag(
     "cds-side-nav",
-    list(...)
+    list(id = "carbon-sidebar", ...)
   )
 }

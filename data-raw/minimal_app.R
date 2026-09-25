@@ -9,12 +9,10 @@ ui <- carbon_page(
       "overview",
       "Overview"
     ),
-
     carbon_nav_item(
       "reports",
       "Reports"
     ),
-
     carbon_nav_item(
       "admin",
       "Admin"
