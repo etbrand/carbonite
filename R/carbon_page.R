@@ -26,25 +26,28 @@ carbon_header <- function(
 carbon_page <- function(
   ...,
   title = "Application",
+  theme = "white",
   sidebar = NULL,
   default_route = "overview"
 ) {
-  page <- htmltools::tagList(
-    carbon_dependency(),
-    carbon_page_dependency(),
-    tags$div(
-      id = "carbon-app",
-      class = "carbon-app",
-      `data-default-route` = default_route,
-      carbon_header(title),
-      sidebar,
-      tags$main(
-        id = "carbon-main",
-        class = "carbon-main",
-        ...
+  page <- #htmltools::tagList(
+    tags$html(
+      `data-carbon-theme` = theme,
+      carbon_dependency(),
+      carbon_page_dependency(),
+      tags$div(
+        id = "carbon-app",
+        class = "carbon-app",
+        `data-default-route` = default_route,
+        carbon_header(title),
+        sidebar,
+        tags$main(
+          id = "carbon-main",
+          class = "carbon-main",
+          ...
+        )
       )
     )
-  )
   page
 }
 

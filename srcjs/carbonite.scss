@@ -1,2 +1,27 @@
-/* Can later use only needed styles */
+/* Can later use only needed styles @use "@carbon/styles"; @use "@carbon/themes";*/
 @use "@carbon/styles";
+@use '@carbon/styles/scss/theme' as *;
+@use '@carbon/styles/scss/themes';
+
+:root,
+[data-carbon-theme="white"] {
+    @include theme(themes.$white);
+}
+
+[data-carbon-theme="g10"] {
+    @include theme(themes.$g10);
+}
+
+[data-carbon-theme="g90"] {
+    @include theme(themes.$g90);
+}
+
+[data-carbon-theme="g100"] {
+    @include theme(themes.$g100);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        @include theme(themes.$g100);
+    }
+}

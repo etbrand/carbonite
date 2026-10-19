@@ -3,7 +3,7 @@ pkgload::load_all()
 
 ui <- carbon_page(
   title = "My App",
-
+  theme = "white",
   sidebar = carbon_sidebar(
     carbon_nav_item(
       "overview",
@@ -18,17 +18,14 @@ ui <- carbon_page(
       "Admin"
     )
   ),
-
   carbon_panel(
     "overview",
     h2("Overview")
   ),
-
   carbon_panel(
     "reports",
     h2("Reports")
   ),
-
   carbon_panel(
     "admin",
     h2("Admin")
