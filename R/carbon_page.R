@@ -9,6 +9,7 @@ cds_header_name <- function(..., href = "#") {
   )
 }
 
+#' @export
 carbon_header <- function(
   title = "Application"
 ) {
@@ -23,6 +24,7 @@ carbon_header <- function(
   )
 }
 
+#' @export
 carbon_page <- function(
   ...,
   title = "Application",
@@ -51,6 +53,7 @@ carbon_page <- function(
   page
 }
 
+#' @export
 carbon_nav_item <- function(
   route,
   label
@@ -66,6 +69,7 @@ carbon_nav_item <- function(
   )
 }
 
+#' @export
 carbon_panel <- function(
   id,
   ...
@@ -77,6 +81,7 @@ carbon_panel <- function(
   )
 }
 
+#' @export
 carbon_sidebar <- function(...) {
   htmltools::tag(
     "cds-side-nav",

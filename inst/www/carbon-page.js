@@ -53,3 +53,23 @@ document.addEventListener("click", e => {
     const route = nav.dataset.route;
     location.hash = route;
 });
+
+document.addEventListener("click", (e) => {
+    const btn = e.target.closest("cds-button");
+
+    if (!btn || !btn.id) return;
+
+    Shiny.setInputValue(
+        btn.id,
+        Date.now(),
+        { priority: "event" }
+    );
+});
+
+document.addEventListener('cds-select-selected', (event) => {
+    Shiny.setInputValue(
+        event.target.id,
+        event.detail.value,
+        { priority: "event" }
+    );
+});

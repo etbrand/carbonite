@@ -1,32 +1,48 @@
 library(shiny)
 pkgload::load_all()
 
-ui <- carbon_page(
+ui <- carbonite::carbon_page(
   title = "My App",
-  theme = "white",
-  sidebar = carbon_sidebar(
-    carbon_nav_item(
+  theme = "g10",
+  sidebar = carbonite::carbon_sidebar(
+    carbonite::carbon_nav_item(
       "overview",
       "Overview"
     ),
-    carbon_nav_item(
+    carbonite::carbon_nav_item(
       "reports",
       "Reports"
     ),
-    carbon_nav_item(
+    carbonite::carbon_nav_item(
       "admin",
       "Admin"
     )
   ),
-  carbon_panel(
+  carbonite::carbon_panel(
     "overview",
     h2("Overview")
   ),
-  carbon_panel(
+  carbonite::carbon_panel(
     "reports",
-    h2("Reports")
+    #h2("Reports"),
+    carbonite::carbon_button(
+      "submit",
+      "Submit",
+      kind = "danger-tertiary"
+    ),
+    htmltools::tags$br(),
+    carbonite::carbon_select(
+      "species",
+      "Species",
+      c(
+        Dog = "dog",
+        Cat = "cat",
+        Bird = "bird"
+      ),
+      size = "xs"
+    )
   ),
-  carbon_panel(
+  carbonite::carbon_panel(
     "admin",
     h2("Admin")
   )
@@ -42,6 +58,9 @@ server <- function(
   })
   observeEvent(input$carbon_page, {
     print(input$carbon_page)
+  })
+  observeEvent(input$species, {
+    print(input$species)
   })
 }
 
