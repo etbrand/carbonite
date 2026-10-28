@@ -9,7 +9,8 @@ carbon_button(
   label,
   kind = c("primary", "secondary", "tertiary", "ghost", "danger", "danger-tertiary",
     "danger-ghost"),
-  size = c("md", "xs", "sm", "lg", "xl", "2xl")
+  size = c("md", "xs", "sm", "lg", "xl", "2xl"),
+  ...
 )
 }
 \arguments{

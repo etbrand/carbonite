@@ -30,7 +30,7 @@ carbon_page <- function(
   title = "Application",
   theme = "white",
   sidebar = NULL,
-  default_route = "overview"
+  default_route = NULL
 ) {
   page <- #htmltools::tagList(
     tags$html(
@@ -40,7 +40,6 @@ carbon_page <- function(
       tags$div(
         id = "carbon-app",
         class = "carbon-app",
-        `data-default-route` = default_route,
         carbon_header(title),
         sidebar,
         tags$main(
@@ -50,6 +49,26 @@ carbon_page <- function(
         )
       )
     )
+  panels <- page$children[[3]]$children[[3]]$children
+
+  if (is.null(default_route)) {
+    default_route <- panels[[1]]$attribs$id
+  }
+  page$children[[3]] <- htmltools::tagAppendAttributes(
+    page$children[[3]],
+    `data-default-route` = default_route
+  )
+  panels <- lapply(panels, function(panel) {
+    if (panel$attribs$id == default_route) {
+      panel <- htmltools::tagAppendAttributes(
+        panel,
+        class = "active"
+      )
+    }
+    panel
+  })
+  page$children[[3]]$children[[3]]$children <- panels
+
   page
 }
 

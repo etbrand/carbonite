@@ -3,11 +3,22 @@ import "@carbon/web-components/es/components/button/index.js";
 import "@carbon/web-components/es/components/select/index.js";
 import "@carbon/web-components/es/components/text-input/index.js";
 import "@carbon/web-components/es/components/checkbox/index.js";
+import "@carbon/web-components/es/components/radio-button/index.js";
+import "@carbon/web-components/es/components/slider/index.js";
+import "@carbon/web-components/es/components/number-input/index.js";
 import "@carbon/web-components/es/components/dropdown/index.js";
+import "@carbon/web-components/es/components/multi-select/index.js";
+import "@carbon/web-components/es/components/combo-box/index.js";
+import "@carbon/web-components/es/components/textarea/index.js";
+import "@carbon/web-components/es/components/modal/index.js";
 import "./carbonite.scss";
-import "./shiny-bindings.js";
-
-console.log("carbon initialized");
-console.log(
-    customElements.get("cds-header")
-);
+import "./inputs/carbon-page.js";
+import "./bindings/carbon-button.js";
+import "./bindings/carbon-text-input.js";
+import "./bindings/carbon-number-input.js";
+import "./bindings/carbon-radio-group.js";
+import "./bindings/carbon-checkbox-group.js";
+import "./bindings/carbon-select.js";
+import "./bindings/carbon-dropdown.js";
+import "./bindings/carbon-combo-box.js";
+import "./bindings/carbon-multi-select.js";

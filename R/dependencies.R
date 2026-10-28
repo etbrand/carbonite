@@ -11,6 +11,8 @@ carbon_dependency <- function() {
   )
 }
 
+# TODO: Eventually remove this but make sure carbon_page default_route still works
+
 carbon_page_dependency <- function() {
   htmltools::htmlDependency(
     name = "carbon-page",
@@ -19,7 +21,7 @@ carbon_page_dependency <- function() {
       "www",
       package = "carbonite"
     ),
-    script = "carbon-page.js",
+    script = "scratch.js",
     stylesheet = "carbon-page.css"
   )
 }

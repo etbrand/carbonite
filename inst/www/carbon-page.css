@@ -1,4 +1,13 @@
-/* Eventually replace with Carbon spacing tokens */
+/* Eventually replace with Carbon spacing tokens? Eventually move to compiled CSS */
+
+.carbon-panel {
+    display: none;
+}
+
+.carbon-panel.active {
+    display: block;
+}
+
 .carbon-app {
     display: grid;
     min-height: calc(100vh - 3rem);

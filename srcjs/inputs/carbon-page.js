@@ -1,10 +1,13 @@
 function navigate(route) {
     showPanel(route);
-    Shiny.setInputValue(
-        "carbon_page",
-        route,
-        { priority: "event" }
-    );
+    if (window.Shiny?.setInputValue) {
+        Shiny.setInputValue(
+            "carbon_page",
+            route,
+            { priority: "event" }
+        );
+    }
+
 }
 
 function getDefaultRoute() {
@@ -23,18 +26,17 @@ function showPanel(id) {
     document
         .querySelectorAll(".carbon-panel")
         .forEach(el => {
-            el.hidden = true;
+            el.classList.remove("active");
         });
     const panel = document.getElementById(id);
     if (panel) {
-        panel.hidden = false;
+        panel.classList.add("active");
     }
 }
 
 document.addEventListener(
     "DOMContentLoaded",
     () => {
-        const route = getCurrentRoute();
         navigate(getCurrentRoute());
     }
 );
@@ -52,24 +54,4 @@ document.addEventListener("click", e => {
     e.preventDefault();
     const route = nav.dataset.route;
     location.hash = route;
-});
-
-document.addEventListener("click", (e) => {
-    const btn = e.target.closest("cds-button");
-
-    if (!btn || !btn.id) return;
-
-    Shiny.setInputValue(
-        btn.id,
-        Date.now(),
-        { priority: "event" }
-    );
-});
-
-document.addEventListener('cds-select-selected', (event) => {
-    Shiny.setInputValue(
-        event.target.id,
-        event.detail.value,
-        { priority: "event" }
-    );
 });
