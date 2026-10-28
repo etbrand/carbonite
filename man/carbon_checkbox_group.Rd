@@ -26,6 +26,9 @@ the user, while values are returned to the server.}
 match entries in \code{choices}.}
 
 \item{helper_text}{Optional helper text displayed below the checkbox group.}
+
+\item{...}{Additional attributes passed to the underlying Carbon
+checkbox group element.}
 }
 \value{
 An HTML tag representing a Carbon checkbox group.

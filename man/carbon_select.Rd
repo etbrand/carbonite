@@ -11,7 +11,8 @@ carbon_select(
   selected = NULL,
   size = c("md", "xs", "sm", "lg"),
   placeholder = NULL,
-  helper_text = NULL
+  helper_text = NULL,
+  ...
 )
 }
 \arguments{
@@ -32,6 +33,9 @@ choice values.}
 selected.}
 
 \item{helper_text}{Optional helper text displayed below input.}
+
+\item{...}{Additional attributes passed to the underlying Carbon
+select element.}
 }
 \value{
 An HTML tag representing a Carbon select input.

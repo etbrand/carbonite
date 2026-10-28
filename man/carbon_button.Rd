@@ -26,6 +26,9 @@ event.}
 
 \item{size}{The Carbon button size. One of \code{"xs"}, \code{"sm"},
 \code{"md"}, \code{"lg"}, \code{"xl"}, or \code{"2xl"}.}
+
+\item{...}{Additional attributes passed to the underlying Carbon
+button element.}
 }
 \value{
 An HTML tag representing a Carbon button.

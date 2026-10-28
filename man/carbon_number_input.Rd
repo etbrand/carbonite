@@ -37,6 +37,9 @@ carbon_number_input(
 empty.}
 
 \item{helper_text}{Optional helper text displayed below the input control.}
+
+\item{...}{Additional attributes passed to the underlying Carbon
+number input element.}
 }
 \value{
 An HTML tag representing a Carbon number input.

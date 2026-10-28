@@ -27,6 +27,9 @@ choice values.}
 
 \item{helper_text}{Optional helper text displayed below the radio button
 group.}
+
+\item{...}{Additional attributes passed to the underlying Carbon
+radio group element.}
 }
 \value{
 An HTML tag representing a Carbon radio button group.

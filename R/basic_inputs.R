@@ -15,6 +15,8 @@
 #'   \code{"danger-ghost"}.
 #' @param size The Carbon button size. One of \code{"xs"}, \code{"sm"},
 #'   \code{"md"}, \code{"lg"}, \code{"xl"}, or \code{"2xl"}.
+#' @param ... Additional attributes passed to the underlying Carbon
+#'   button element.
 #'
 #' @return An HTML tag representing a Carbon button.
 #'
@@ -82,6 +84,8 @@ carbon_button <- function(
 #' @param placeholder Optional placeholder text displayed when no value is
 #'   selected.
 #' @param helper_text Optional helper text displayed below input.
+#' @param ... Additional attributes passed to the underlying Carbon
+#'   select element.
 #'
 #' @return An HTML tag representing a Carbon select input.
 #'
@@ -112,7 +116,8 @@ carbon_select <- function(
   selected = NULL,
   size = c("md", "xs", "sm", "lg"),
   placeholder = NULL,
-  helper_text = NULL
+  helper_text = NULL,
+  ...
 ) {
   size <- match.arg(size)
 
@@ -134,37 +139,19 @@ carbon_select <- function(
   )
   htmltools::tag(
     "cds-select",
-    list(
-      id = inputId,
-      size = size,
-      placeholder = placeholder,
-      `helper-text` = helper_text,
-      `label-text` = label,
-      items
+    c(
+      list(
+        id = inputId,
+        size = size,
+        placeholder = placeholder,
+        `helper-text` = helper_text,
+        `label-text` = label,
+        items
+      ),
+      list(...)
     )
   )
 }
-
-# #' @export
-# update_carbon_select <- function(
-#   inputId,
-#   selected = NULL,
-#   choices = NULL,
-#   label = NULL,
-#   helper_text = NULL,
-#   session = shiny::getDefaultReactiveDomain()
-# ) {
-#   session$sendCustomMessage(
-#     "carbon-update-select",
-#     list(
-#       id = session$ns(inputId),
-#       label = label,
-#       choices = normalize_choices(choices),
-#       selected = selected,
-#       helper_text = helper_text
-#     )
-#   )
-# }
 
 #' Carbon Design System Text Input
 #'
@@ -178,6 +165,8 @@ carbon_select <- function(
 #' @param placeholder Optional placeholder text displayed when the input is
 #'   empty.
 #' @param helper_text Optional helper text displayed below the input control.
+#' @param ... Additional attributes passed to the underlying Carbon
+#'   text input element.
 #'
 #' @return An HTML tag representing a Carbon text input.
 #'
@@ -231,7 +220,34 @@ carbon_text_input <- function(
   )
 }
 
+#' Update a Carbon Text Input
+#'
+#' Update the properties or value of an existing Carbon text input.
+#'
+#' @param inputId The input slot of the text input to update.
+#' @param value An optional new value for the input. If `NULL`, the existing
+#'   value is unchanged.
+#' @param placeholder Optional new placeholder text. If `NULL`, the existing
+#'   placeholder is unchanged.
+#' @param helper_text Optional new helper text. If `NULL`, the existing helper
+#'   text is unchanged.
+#' @param ... Additional attributes to update on the underlying Carbon text
+#'   input element.
+#' @param session The Shiny session object. Defaults to the current reactive
+#'   domain.
+#'
+#' @return Invisibly returns `NULL`.
+#'
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' update_carbon_text_input(
+#'   "name",
+#'   value = "Jane Doe",
+#'   placeholder = "Enter your name"
+#' )
+#' }
 update_carbon_text_input <- function(
   inputId,
   value = NULL,
@@ -273,6 +289,8 @@ update_carbon_text_input <- function(
 #' @param selected A character vector of initially selected values. Values must
 #'   match entries in \code{choices}.
 #' @param helper_text Optional helper text displayed below the checkbox group.
+#' @param ... Additional attributes passed to the underlying Carbon
+#'   checkbox group element.
 #'
 #' @return An HTML tag representing a Carbon checkbox group.
 #'
@@ -366,6 +384,8 @@ carbon_checkbox_group <- function(
 #' @param placeholder Optional placeholder text displayed when the input is
 #'   empty.
 #' @param helper_text Optional helper text displayed below the input control.
+#' @param ... Additional attributes passed to the underlying Carbon
+#'   number input element.
 #'
 #' @return An HTML tag representing a Carbon number input.
 #'
@@ -458,6 +478,8 @@ carbon_number_input <- function(
 #'   choice values.
 #' @param helper_text Optional helper text displayed below the radio button
 #'   group.
+#' @param ... Additional attributes passed to the underlying Carbon
+#'   radio group element.
 #'
 #' @return An HTML tag representing a Carbon radio button group.
 #'
@@ -539,7 +561,42 @@ carbon_radio_group <- function(
   )
 }
 
+#' Update a Carbon Select Input
+#'
+#' Update the properties, choices, or selected value of an existing Carbon
+#' select input.
+#'
+#' @param inputId The input slot of the select input to update.
+#' @param label An optional new label for the input. If `NULL`, the existing
+#'   label is unchanged.
+#' @param selected The value to select. If `NULL`, the existing selection is
+#'   unchanged.
+#' @param choices An optional vector of new choices. If the vector is named,
+#'   the names are displayed to the user while the values are returned to
+#'   the server. If `NULL`, the existing choices are unchanged.
+#' @param helper_text Optional new helper text. If `NULL`, the existing helper
+#'   text is unchanged.
+#' @param ... Additional attributes to update on the underlying Carbon select
+#'   element.
+#' @param session The Shiny session object. Defaults to the current reactive
+#'   domain.
+#'
+#' @return Invisibly returns `NULL`.
+#'
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' update_carbon_select(
+#'   "animal",
+#'   choices = c(
+#'     "Cat" = "cat",
+#'     "Dog" = "dog",
+#'     "Bird" = "bird"
+#'   ),
+#'   selected = "cat"
+#' )
+#' }
 update_carbon_select <- function(
   inputId,
   label = NULL,
@@ -570,7 +627,42 @@ update_carbon_select <- function(
   session$sendInputMessage(session$ns(inputId), msg)
 }
 
+#' Update a Carbon Radio Button Group
+#'
+#' Update the properties, choices, or selected value of an existing Carbon
+#' radio button group.
+#'
+#' @param inputId The input slot of the radio button group to update.
+#' @param label An optional new label for the input. If `NULL`, the existing
+#'   label is unchanged.
+#' @param choices An optional vector of new choices. If the vector is named,
+#'   the names are displayed to the user while the values are returned to
+#'   the server. If `NULL`, the existing choices are unchanged.
+#' @param selected The value to select. If `NULL`, the existing selection is
+#'   unchanged.
+#' @param helper_text Optional new helper text. If `NULL`, the existing helper
+#'   text is unchanged.
+#' @param ... Additional attributes to update on the underlying Carbon radio
+#'   button group element.
+#' @param session The Shiny session object. Defaults to the current reactive
+#'   domain.
+#'
+#' @return Invisibly returns `NULL`.
+#'
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' update_carbon_radio_group(
+#'   "animal",
+#'   choices = c(
+#'     "Cat" = "cat",
+#'     "Dog" = "dog",
+#'     "Bird" = "bird"
+#'   ),
+#'   selected = "cat"
+#' )
+#' }
 update_carbon_radio_group <- function(
   inputId,
   label = NULL,
@@ -601,7 +693,42 @@ update_carbon_radio_group <- function(
   session$sendInputMessage(session$ns(inputId), msg)
 }
 
+#' Update a Carbon Checkbox Group
+#'
+#' Update the properties, choices, or selected values of an existing Carbon
+#' checkbox group.
+#'
+#' @param inputId The input slot of the checkbox group to update.
+#' @param label An optional new label for the input. If `NULL`, the existing
+#'   label is unchanged.
+#' @param choices An optional vector of new choices. If the vector is named,
+#'   the names are displayed to the user while the values are returned to
+#'   the server. If `NULL`, the existing choices are unchanged.
+#' @param selected One or more values to select. If `NULL`, the existing
+#'   selection is unchanged.
+#' @param helper_text Optional new helper text. If `NULL`, the existing helper
+#'   text is unchanged.
+#' @param ... Additional attributes to update on the underlying Carbon
+#'   checkbox group element.
+#' @param session The Shiny session object. Defaults to the current reactive
+#'   domain.
+#'
+#' @return Invisibly returns `NULL`.
+#'
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' update_carbon_checkbox_group(
+#'   "animals",
+#'   choices = c(
+#'     "Cat" = "cat",
+#'     "Dog" = "dog",
+#'     "Bird" = "bird"
+#'   ),
+#'   selected = c("cat", "dog")
+#' )
+#' }
 update_carbon_checkbox_group <- function(
   inputId,
   label = NULL,
@@ -632,7 +759,35 @@ update_carbon_checkbox_group <- function(
   session$sendInputMessage(session$ns(inputId), msg)
 }
 
+#' Update a Carbon Button
+#'
+#' Update the properties or label of an existing Carbon button.
+#'
+#' @param inputId The input slot of the button to update.
+#' @param label An optional new label for the button. If `NULL`, the existing
+#'   label is unchanged.
+#' @param kind An optional new button kind. If `NULL`, the existing kind is
+#'   unchanged.
+#' @param size An optional new button size. If `NULL`, the existing size is
+#'   unchanged.
+#' @param ... Additional attributes to update on the underlying Carbon button
+#'   element.
+#' @param session The Shiny session object. Defaults to the current reactive
+#'   domain.
+#'
+#' @return Invisibly returns `NULL`.
+#'
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' update_carbon_button(
+#'   "submit",
+#'   label = "Submitted",
+#'   kind = "secondary",
+#'   size = "sm"
+#' )
+#' }
 update_carbon_button <- function(
   inputId,
   label = NULL,
@@ -654,7 +809,46 @@ update_carbon_button <- function(
   session$sendInputMessage(session$ns(inputId), msg)
 }
 
+#' Update a Carbon Number Input
+#'
+#' Update the properties or value of an existing Carbon number input.
+#'
+#' @param inputId The input slot of the number input to update.
+#' @param value An optional new value for the input. If `NULL`, the existing
+#'   value is unchanged.
+#' @param label An optional new label for the input. If `NULL`, the existing
+#'   label is unchanged.
+#' @param min An optional new minimum allowed value. If `NULL`, the existing
+#'   minimum is unchanged.
+#' @param max An optional new maximum allowed value. If `NULL`, the existing
+#'   maximum is unchanged.
+#' @param step An optional new amount by which the value is incremented or
+#'   decremented. If `NULL`, the existing step is unchanged.
+#' @param size An optional new input size. If `NULL`, the existing size is
+#'   unchanged.
+#' @param placeholder Optional new placeholder text. If `NULL`, the existing
+#'   placeholder is unchanged.
+#' @param helper_text Optional new helper text. If `NULL`, the existing helper
+#'   text is unchanged.
+#' @param ... Additional attributes to update on the underlying Carbon number
+#'   input element.
+#' @param session The Shiny session object. Defaults to the current reactive
+#'   domain.
+#'
+#' @return Invisibly returns `NULL`.
+#'
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' update_carbon_number_input(
+#'   "quantity",
+#'   value = 10,
+#'   min = 0,
+#'   max = 100,
+#'   step = 5
+#' )
+#' }
 update_carbon_number_input <- function(
   inputId,
   value = NULL,
