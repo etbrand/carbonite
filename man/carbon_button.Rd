@@ -7,6 +7,7 @@
 carbon_button(
   inputId,
   label,
+  icon = NULL,
   kind = c("primary", "secondary", "tertiary", "ghost", "danger", "danger-tertiary",
     "danger-ghost"),
   size = c("md", "xs", "sm", "lg", "xl", "2xl"),

@@ -48,6 +48,7 @@
 carbon_button <- function(
   inputId,
   label,
+  icon = NULL,
   kind = c(
     "primary",
     "secondary",
@@ -64,7 +65,10 @@ carbon_button <- function(
   size <- match.arg(size)
   htmltools::tag(
     "cds-button",
-    c(list(id = inputId, kind = kind, size = size, label), list(...))
+    c(
+      list(id = inputId, kind = kind, size = size, `data-icon` = icon, label),
+      list(...)
+    )
   )
 }
 

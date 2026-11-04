@@ -45,3 +45,11 @@
         z-index: 1000;
     }
 }
+
+.carbon-table-output__skeleton {
+    display: none;
+}
+
+th {
+    font-weight: normal !important;
+}
