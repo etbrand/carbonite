@@ -107,3 +107,101 @@ carbon_sidebar <- function(...) {
     list(id = "carbon-sidebar", ...)
   )
 }
+
+#' @export
+carbon_tab <- function(value, label, ..., disabled = FALSE) {
+  structure(
+    list(
+      value = value,
+      label = label,
+      content = rlang::list2(...),
+      disabled = disabled
+    ),
+    class = "carbon_tab"
+  )
+}
+
+#' @export
+carbon_tabs <- function(input_id, ..., selected = NULL) {
+  tabs <- rlang::list2(...)
+
+  if (!length(tabs)) {
+    stop("`carbon_tabs()` requires at least one `carbon_tab()`.", call. = FALSE)
+  }
+
+  if (!all(vapply(tabs, inherits, logical(1), "carbon_tab"))) {
+    stop(
+      "All elements passed through `...` must be created with `carbon_tab()`.",
+      call. = FALSE
+    )
+  }
+
+  values <- vapply(tabs, `[[`, character(1), "value")
+
+  if (anyDuplicated(values)) {
+    stop("Tab values must be unique.", call. = FALSE)
+  }
+
+  # Default to the first enabled tab
+  if (is.null(selected)) {
+    enabled <- !vapply(tabs, `[[`, logical(1), "disabled")
+
+    if (!any(enabled)) {
+      stop("At least one tab must be enabled.", call. = FALSE)
+    }
+
+    selected <- values[which(enabled)[1]]
+  }
+
+  if (!selected %in% values) {
+    stop("`selected` must match a tab value.", call. = FALSE)
+  }
+
+  selected_index <- match(selected, values)
+
+  tab_list <- lapply(seq_along(tabs), function(i) {
+    tab <- tabs[[i]]
+
+    tab_id <- paste0(input_id, "-tab-", i)
+    panel_id <- paste0(input_id, "-panel-", i)
+
+    htmltools::tag(
+      "cds-tab",
+      list(
+        id = tab_id,
+        value = tab$value,
+        target = panel_id,
+        disabled = if (tab$disabled) "" else NULL,
+        selected = if (i == selected_index) "" else NULL,
+        tab$label
+      )
+    )
+  })
+
+  tab_panels <- lapply(seq_along(tabs), function(i) {
+    tab <- tabs[[i]]
+
+    panel_id <- paste0(input_id, "-panel-", i)
+
+    htmltools::tag(
+      "cds-tab-panel",
+      list(
+        id = panel_id,
+        value = tab$value,
+        tab$content
+      )
+    )
+  })
+
+  htmltools::tagList(
+    htmltools::tag(
+      "cds-tabs",
+      list(
+        id = input_id,
+        value = selected,
+        tab_list
+      )
+    ),
+    tab_panels
+  )
+}

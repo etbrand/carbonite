@@ -117,6 +117,10 @@ ui <- carbonite::carbon_page(
       placeholder = "Choose something",
       helper_text = "Help me please",
       direction = "top"
+    ),
+    carbonite::carbon_table(
+      head(mtcars),
+      size = "xs"
     )
   ),
   carbonite::carbon_panel(
