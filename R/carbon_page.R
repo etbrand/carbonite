@@ -1,3 +1,39 @@
+#' @export
+carbon_tag <- function(
+  label,
+  type = c(
+    "red",
+    "magenta",
+    "purple",
+    "blue",
+    "cyan",
+    "teal",
+    "green",
+    "gray",
+    "cool-gray",
+    "warm-gray"
+  ),
+  size = c("sm", "md"),
+  filter = FALSE,
+  id = NULL,
+  dismissible = FALSE
+) {
+  type <- match.arg(type)
+  size <- match.arg(size)
+
+  htmltools::tag(
+    if (dismissible) "cds-dismissible-tag" else "cds-tag",
+    c(
+      list(
+        id = id,
+        type = type,
+        size = size
+      ),
+      if (dismissible) list(text = label) else label
+    )
+  )
+}
+
 cds_header <- function(...) {
   htmltools::tag("cds-header", list(...))
 }

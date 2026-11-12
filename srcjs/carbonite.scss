@@ -2,6 +2,7 @@
 @use "@carbon/styles";
 @use '@carbon/styles/scss/theme' as *;
 @use '@carbon/styles/scss/themes';
+@use '@carbon/grid' as *;
 
 :root,
 [data-carbon-theme="white"] {

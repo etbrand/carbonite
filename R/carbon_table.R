@@ -33,7 +33,7 @@ normalize_columns <- function(data, columns, sortable) {
 
   lapply(columns, function(x) {
     if (!inherits(x, "carbon_table_column")) {
-      x <- carbon_column(label = x)
+      x <- carbon_table_column(label = x)
     }
 
     if (is.null(x$sortable)) {
@@ -45,7 +45,7 @@ normalize_columns <- function(data, columns, sortable) {
 }
 
 #' @export
-carbon_column <- function(
+carbon_table_column <- function(
   label = NULL,
   sortable = NULL,
   formatter = NULL
