@@ -78,18 +78,6 @@ carbon_table_output <- function(
     unname(initial_columns)
   }
 
-  skeleton_tag <- htmltools::tag(
-    "cds-table-skeleton",
-    c(
-      list(
-        class = "carbon-table-output__skeleton",
-        `data-show-header` = if (show_header) "true" else "false",
-        `data-show-toolbar` = if (show_toolbar) "true" else "false",
-        `data-headers` = jsonlite::toJSON(labels, auto_unbox = TRUE)
-      )
-    )
-  )
-
   htmltools::tags$div(
     class = "carbon-table-output",
     list(...),
@@ -97,7 +85,17 @@ carbon_table_output <- function(
       outputId,
       class = "carbon-table-output__table"
     ),
-    skeleton_tag
+    htmltools::tag(
+      "cds-table-skeleton",
+      c(
+        list(
+          class = "carbon-table-output__skeleton",
+          `data-show-header` = if (show_header) "true" else "false",
+          `data-show-toolbar` = if (show_toolbar) "true" else "false",
+          `data-headers` = jsonlite::toJSON(labels, auto_unbox = TRUE)
+        )
+      )
+    )
   )
 }
 

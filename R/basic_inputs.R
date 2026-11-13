@@ -124,6 +124,7 @@ carbon_select <- function(
   ...
 ) {
   size <- match.arg(size)
+  choices <- normalize_choices(choices)
 
   items <- Map(
     function(text, value) {
@@ -146,6 +147,7 @@ carbon_select <- function(
     c(
       list(
         id = inputId,
+        value = selected,
         size = size,
         placeholder = placeholder,
         `helper-text` = helper_text,

@@ -48,6 +48,8 @@
 
 .carbon-table-output__skeleton {
     display: none;
+    overflow-x: auto;
+    width: 100%;
 }
 
 th {

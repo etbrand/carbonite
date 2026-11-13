@@ -14,12 +14,22 @@ function setTableLoading(output, loading) {
     skeleton.showToolbar = skeleton.dataset.showToolbar === "true";
     skeleton.headers = JSON.parse(skeleton.dataset.headers);
 
-    output.style.display = loading ? "none" : "";
+    if (loading) {
+        output.style.visibility = "hidden";
+        output.style.position = "absolute";
+        output.style.inset = "0";
+        output.style.pointerEvents = "none";
+    } else {
+        output.style.visibility = "";
+        output.style.position = "";
+        output.style.inset = "";
+        output.style.pointerEvents = "";
+    }
+
     skeleton.style.display = loading ? "block" : "none";
 }
 
 $(document).on("shiny:recalculating", (event) => {
-    console.log("Recalculating");
     if (event.target.matches(".carbon-table-output__table")) {
         setTableLoading(event.target, true);
     }
