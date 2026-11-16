@@ -1,4 +1,8 @@
-import { updateCarbonAttributes, rebuildCarbonChoices } from "./utils.js";
+import {
+    updateCarbonAttributes,
+    rebuildCarbonChoices,
+    toValueArray
+} from "./utils.js";
 
 const carbonCheckboxGroupBinding = new Shiny.InputBinding();
 
@@ -29,11 +33,21 @@ $.extend(carbonCheckboxGroupBinding, {
     },
 
     receiveMessage(el, data) {
+        const { value, ...attributes } = data;
+
         if (data.choices !== undefined) {
             rebuildCarbonChoices(el, data);
+        } else if (value !== undefined) {
+            // cds-checkbox-group has no `value` property, so selection has to
+            // be applied to the child checkboxes directly.
+            const selected = toValueArray(value);
+
+            el.querySelectorAll("cds-checkbox").forEach(checkbox => {
+                checkbox.checked = selected.includes(String(checkbox.value));
+            });
         }
 
-        updateCarbonAttributes(el, data);
+        updateCarbonAttributes(el, attributes);
         el._carbonInputHandler?.();
     }
 });

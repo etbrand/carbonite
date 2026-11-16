@@ -4,12 +4,10 @@ import { carbonIcons } from "../icons.js";
 
 function setButtonIcon(el) {
     const iconName = el.dataset.icon;
-    console.log("icon name:", iconName);
 
     if (!iconName) return;
 
     const icon = carbonIcons[iconName];
-    console.log("icon definition:", icon);
 
     if (!icon) {
         console.warn(`Unknown Carbon icon: "${iconName}"`);
@@ -21,10 +19,18 @@ function setButtonIcon(el) {
         attrs: getAttributes(icon.attrs)
     });
 
-    console.log("generated svg:", svg);
-
     svg.setAttribute("slot", "icon");
     el.appendChild(svg);
+}
+
+// Replace the button's text without removing the slotted icon SVG
+// (setting textContent would wipe every child node, icon included).
+function setButtonLabel(el, label) {
+    Array.from(el.childNodes)
+        .filter(node => !(node.nodeType === Node.ELEMENT_NODE && node.getAttribute("slot") === "icon"))
+        .forEach(node => node.remove());
+
+    el.appendChild(document.createTextNode(label));
 }
 
 const carbonButtonBinding = new Shiny.InputBinding();
@@ -61,7 +67,13 @@ $.extend(carbonButtonBinding, {
     },
 
     receiveMessage(el, data) {
-        updateCarbonAttributes(el, data);
+        const { label, ...attributes } = data;
+
+        if (label !== undefined) {
+            setButtonLabel(el, label);
+        }
+
+        updateCarbonAttributes(el, attributes);
     }
 });
 

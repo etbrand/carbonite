@@ -7,6 +7,7 @@
 carbon_text_input(
   inputId,
   label = NULL,
+  value = NULL,
   size = c("md", "xs", "sm", "lg"),
   placeholder = NULL,
   helper_text = NULL,
@@ -17,6 +18,8 @@ carbon_text_input(
 \item{inputId}{The input slot that will be used to access the value.}
 
 \item{label}{Optional label displayed above the text input.}
+
+\item{value}{Optional initial value of the input.}
 
 \item{size}{The Carbon input size. One of \code{"xs"}, \code{"sm"},
 \code{"md"}, or \code{"lg"}.}

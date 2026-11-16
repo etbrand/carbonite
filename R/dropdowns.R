@@ -63,7 +63,7 @@ carbon_dropdown <- function(
   size <- match.arg(size)
   items <- .create_items(inputId, "cds-dropdown", choices, selected)
 
-  htmltools::tag(
+  .build_carbon_tag(
     "cds-dropdown",
     c(
       list(
@@ -126,7 +126,7 @@ carbon_combobox <- function(
   size <- match.arg(size)
   items <- .create_items(inputId, "cds-combo-box", choices, selected)
 
-  htmltools::tag(
+  .build_carbon_tag(
     "cds-combo-box",
     c(
       list(
@@ -199,7 +199,7 @@ carbon_multiselect <- function(
   size <- match.arg(size)
   items <- .create_items(inputId, "cds-multi-select", choices, selected)
 
-  htmltools::tag(
+  .build_carbon_tag(
     "cds-multi-select",
     c(
       list(

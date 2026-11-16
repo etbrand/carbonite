@@ -36,7 +36,6 @@ $(document).on("shiny:recalculating", (event) => {
 });
 
 $(document).on("shiny:value", (event) => {
-    console.log("value");
     if (event.target.matches(".carbon-table-output__table")) {
         const output = event.target;
         setTableLoading(output, false);

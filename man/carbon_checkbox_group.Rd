@@ -67,8 +67,8 @@ carbon_checkbox_group(
   inputId = "interests",
   label = "Areas of Interest",
   choices = c(
-    Data Science = "ds",
-    Machine Learning = "ml",
+    `Data Science` = "ds",
+    `Machine Learning` = "ml",
     Visualization = "viz"
   ),
   helper_text = "Select all that apply."

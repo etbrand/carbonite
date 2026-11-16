@@ -1,3 +1,28 @@
+#' Carbon Design System Tag
+#'
+#' Create a Carbon tag: a small coloured label for categorising or
+#' highlighting content, optionally with a dismiss button.
+#'
+#' @param label The tag text.
+#' @param type The tag colour. One of \code{"red"}, \code{"magenta"},
+#'   \code{"purple"}, \code{"blue"}, \code{"cyan"}, \code{"teal"},
+#'   \code{"green"}, \code{"gray"}, \code{"cool-gray"}, or
+#'   \code{"warm-gray"}.
+#' @param size The tag size. One of \code{"sm"} or \code{"md"}.
+#' @param filter Not yet implemented; currently has no effect.
+#' @param id Optional element id.
+#' @param dismissible If \code{TRUE}, render a \code{cds-dismissible-tag}
+#'   with a close button instead of a plain \code{cds-tag}.
+#'
+#' @return An HTML tag representing a Carbon tag.
+#'
+#' @examples
+#' carbon_tag("Beta")
+#'
+#' carbon_tag("Deprecated", type = "red", size = "md")
+#'
+#' carbon_tag("Filter: active", type = "blue", dismissible = TRUE)
+#'
 #' @export
 carbon_tag <- function(
   label,
@@ -21,7 +46,7 @@ carbon_tag <- function(
   type <- match.arg(type)
   size <- match.arg(size)
 
-  htmltools::tag(
+  .build_carbon_tag(
     if (dismissible) "cds-dismissible-tag" else "cds-tag",
     c(
       list(
@@ -35,7 +60,7 @@ carbon_tag <- function(
 }
 
 cds_header <- function(...) {
-  htmltools::tag("cds-header", list(...))
+  .build_carbon_tag("cds-header", list(...))
 }
 
 cds_header_name <- function(..., href = "#") {
@@ -45,6 +70,19 @@ cds_header_name <- function(..., href = "#") {
   )
 }
 
+#' Carbon Design System Header
+#'
+#' Create the Carbon UI shell header bar with a menu button and the
+#' application name. \code{carbon_page()} adds this automatically, so you
+#' only need it when building a custom layout.
+#'
+#' @param title The application name shown in the header.
+#'
+#' @return An \code{htmltools::tagList} containing a Carbon header.
+#'
+#' @examples
+#' carbon_header("Sales Dashboard")
+#'
 #' @export
 carbon_header <- function(
   title = "Application"
@@ -60,6 +98,49 @@ carbon_header <- function(
   )
 }
 
+#' Carbon Design System Page
+#'
+#' Create a full-page Carbon application layout: a header, an optional side
+#' navigation, and a main area that shows one \code{carbon_panel()} at a time.
+#'
+#' Navigation is hash-based: each \code{carbon_nav_item()} links to
+#' \code{#<route>}, and the panel whose \code{id} matches the route is shown.
+#' The current route is available on the server as \code{input$carbon_page}.
+#'
+#' @param ... \code{carbon_panel()} elements, one per route. Each must have a
+#'   unique \code{id}.
+#' @param title The application name shown in the header.
+#' @param theme The Carbon theme. One of \code{"white"}, \code{"g10"},
+#'   \code{"g90"}, or \code{"g100"}.
+#' @param sidebar Optional side navigation, created with
+#'   \code{carbon_sidebar()}.
+#' @param default_route The \code{id} of the panel to show when the URL has no
+#'   route. Defaults to the first panel.
+#'
+#' @return An HTML page suitable as a Shiny UI.
+#'
+#' @seealso \code{\link{carbon_panel}}, \code{\link{carbon_sidebar}},
+#'   \code{\link{carbon_nav_item}}
+#'
+#' @examples
+#' ui <- carbon_page(
+#'   title = "My App",
+#'   theme = "g10",
+#'   sidebar = carbon_sidebar(
+#'     carbon_nav_item("home", "Home"),
+#'     carbon_nav_item("settings", "Settings")
+#'   ),
+#'   carbon_panel("home", htmltools::h2("Home")),
+#'   carbon_panel("settings", htmltools::h2("Settings"))
+#' )
+#'
+#' if (interactive()) {
+#'   server <- function(input, output, session) {
+#'     shiny::observe(print(input$carbon_page))
+#'   }
+#'   shiny::shinyApp(ui, server)
+#' }
+#'
 #' @export
 carbon_page <- function(
   ...,
@@ -69,16 +150,16 @@ carbon_page <- function(
   default_route = NULL
 ) {
   page <- #htmltools::tagList(
-    tags$html(
+    htmltools::tags$html(
       `data-carbon-theme` = theme,
       carbon_dependency(),
       carbon_page_dependency(),
-      tags$div(
+      htmltools::tags$div(
         id = "carbon-app",
         class = "carbon-app",
         carbon_header(title),
         sidebar,
-        tags$main(
+        htmltools::tags$main(
           id = "carbon-main",
           class = "carbon-main",
           ...
@@ -108,12 +189,25 @@ carbon_page <- function(
   page
 }
 
+#' Carbon Side Navigation Link
+#'
+#' Create a link in a \code{carbon_sidebar()} that navigates to a
+#' \code{carbon_panel()} within a \code{carbon_page()}.
+#'
+#' @param route The \code{id} of the \code{carbon_panel()} to show.
+#' @param label The link text.
+#'
+#' @return An HTML tag representing a Carbon side navigation link.
+#'
+#' @examples
+#' carbon_nav_item("reports", "Reports")
+#'
 #' @export
 carbon_nav_item <- function(
   route,
   label
 ) {
-  htmltools::tag(
+  .build_carbon_tag(
     "cds-side-nav-link",
     list(
       href = paste0("#", route),
@@ -124,26 +218,74 @@ carbon_nav_item <- function(
   )
 }
 
+#' Carbon Page Panel
+#'
+#' Create a content panel for \code{carbon_page()}. Only the panel matching
+#' the current route is visible.
+#'
+#' @param id The panel's route. Link to it with
+#'   \code{carbon_nav_item(route = id)}.
+#' @param ... UI elements to show in the panel.
+#'
+#' @return A \code{div} tag.
+#'
+#' @examples
+#' carbon_panel(
+#'   "overview",
+#'   htmltools::h2("Overview"),
+#'   htmltools::p("Welcome!")
+#' )
+#'
 #' @export
 carbon_panel <- function(
   id,
   ...
 ) {
-  tags$div(
+  htmltools::tags$div(
     id = id,
     class = "carbon-panel",
     ...
   )
 }
 
+#' Carbon Side Navigation
+#'
+#' Create the side navigation for \code{carbon_page()}.
+#'
+#' @param ... \code{carbon_nav_item()} links, plus any additional attributes
+#'   for the underlying \code{cds-side-nav} element.
+#'
+#' @return An HTML tag representing a Carbon side navigation.
+#'
+#' @examples
+#' carbon_sidebar(
+#'   carbon_nav_item("home", "Home"),
+#'   carbon_nav_item("about", "About")
+#' )
+#'
 #' @export
 carbon_sidebar <- function(...) {
-  htmltools::tag(
+  .build_carbon_tag(
     "cds-side-nav",
     list(id = "carbon-sidebar", ...)
   )
 }
 
+#' Carbon Tab
+#'
+#' Define one tab for \code{carbon_tabs()}. This does not render anything on
+#' its own.
+#'
+#' @param value A unique value identifying the tab.
+#' @param label The text shown on the tab.
+#' @param ... UI elements shown when the tab is selected.
+#' @param disabled If \code{TRUE}, the tab cannot be selected.
+#'
+#' @return A \code{carbon_tab} object to pass to \code{carbon_tabs()}.
+#'
+#' @examples
+#' carbon_tab("summary", "Summary", htmltools::p("Summary content"))
+#'
 #' @export
 carbon_tab <- function(value, label, ..., disabled = FALSE) {
   structure(
@@ -157,6 +299,32 @@ carbon_tab <- function(value, label, ..., disabled = FALSE) {
   )
 }
 
+#' Carbon Tabs
+#'
+#' Create a Carbon tab set, with one panel per \code{carbon_tab()}. Selecting
+#' a tab shows its panel.
+#'
+#' There is no Shiny input binding for tabs yet, so the selected tab is not
+#' available on the server.
+#'
+#' @param input_id The id of the \code{cds-tabs} element. Tab and panel ids
+#'   are derived from it.
+#' @param ... One or more \code{carbon_tab()} objects.
+#' @param selected The \code{value} of the initially selected tab. Defaults
+#'   to the first enabled tab.
+#'
+#' @return An \code{htmltools::tagList} containing the tab bar and the tab
+#'   panels.
+#'
+#' @examples
+#' carbon_tabs(
+#'   "main_tabs",
+#'   carbon_tab("overview", "Overview", htmltools::p("Overview content")),
+#'   carbon_tab("data", "Data", htmltools::p("Data content")),
+#'   carbon_tab("admin", "Admin", disabled = TRUE),
+#'   selected = "data"
+#' )
+#'
 #' @export
 carbon_tabs <- function(input_id, ..., selected = NULL) {
   tabs <- rlang::list2(...)
@@ -230,7 +398,7 @@ carbon_tabs <- function(input_id, ..., selected = NULL) {
   })
 
   htmltools::tagList(
-    htmltools::tag(
+    .build_carbon_tag(
       "cds-tabs",
       list(
         id = input_id,

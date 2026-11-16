@@ -1,6 +1,11 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
+    test: {
+        environment: "happy-dom",
+        include: ["test/**/*.test.js"],
+        setupFiles: ["test/setup.js"]
+    },
     build: {
         lib: {
             entry: "carbonite.js",

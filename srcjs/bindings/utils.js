@@ -14,9 +14,21 @@ export function updateCarbonAttributes(el, data) {
     );
 }
 
+// Shiny serialises length-1 R vectors as scalars, so a selected value may
+// arrive as "a" or ["a", "b"]. Normalise to an array of strings so membership
+// checks are exact matches rather than substring matches on a string.
+export function toValueArray(value) {
+    if (value === undefined || value === null) {
+        return [];
+    }
+
+    return [].concat(value).map(String);
+}
+
 export function rebuildCarbonChoices(el, message) {
 
     if (["CDS-RADIO-BUTTON-GROUP", "CDS-CHECKBOX-GROUP"].includes(el.tagName)) {
+        const selected = toValueArray(message.value);
         el.replaceChildren();
         const itemTag = el.tagName.replace(/-GROUP$/, "").toLowerCase();
         Object.entries(message.choices).forEach(
@@ -28,7 +40,7 @@ export function rebuildCarbonChoices(el, message) {
                 if (itemTag === "cds-radio-button") {
                     item.name = el.id;
                 }
-                if (message.value.includes(value)) {
+                if (selected.includes(String(value))) {
                     item.checked = true;
                 }
                 el.appendChild(item);

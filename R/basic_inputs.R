@@ -9,6 +9,8 @@
 #' @param inputId The input slot that will be used to access the button click
 #'   event.
 #' @param label The button label.
+#' @param icon Optional name of a Carbon icon shown in the button. Currently
+#'   one of \code{"add"}, \code{"edit"}, or \code{"trash-can"}.
 #' @param kind The Carbon button style. One of \code{"primary"},
 #'   \code{"secondary"}, \code{"tertiary"}, \code{"ghost"},
 #'   \code{"danger"}, \code{"danger-tertiary"}, or
@@ -63,7 +65,7 @@ carbon_button <- function(
 ) {
   kind <- match.arg(kind)
   size <- match.arg(size)
-  htmltools::tag(
+  .build_carbon_tag(
     "cds-button",
     c(
       list(id = inputId, kind = kind, size = size, `data-icon` = icon, label),
@@ -142,7 +144,7 @@ carbon_select <- function(
     names(choices),
     unname(choices)
   )
-  htmltools::tag(
+  .build_carbon_tag(
     "cds-select",
     c(
       list(
@@ -166,6 +168,7 @@ carbon_select <- function(
 #'
 #' @param inputId The input slot that will be used to access the value.
 #' @param label Optional label displayed above the text input.
+#' @param value Optional initial value of the input.
 #' @param size The Carbon input size. One of \code{"xs"}, \code{"sm"},
 #'   \code{"md"}, or \code{"lg"}.
 #' @param placeholder Optional placeholder text displayed when the input is
@@ -205,18 +208,20 @@ carbon_select <- function(
 carbon_text_input <- function(
   inputId,
   label = NULL,
+  value = NULL,
   size = c("md", "xs", "sm", "lg"),
   placeholder = NULL,
   helper_text = NULL,
   ...
 ) {
   size <- match.arg(size)
-  htmltools::tag(
+  .build_carbon_tag(
     "cds-text-input",
     c(
       list(
         id = inputId,
         label = label,
+        value = value,
         size = size,
         placeholder = placeholder,
         `helper-text` = helper_text
@@ -326,8 +331,8 @@ update_carbon_text_input <- function(
 #'   inputId = "interests",
 #'   label = "Areas of Interest",
 #'   choices = c(
-#'     Data Science = "ds",
-#'     Machine Learning = "ml",
+#'     `Data Science` = "ds",
+#'     `Machine Learning` = "ml",
 #'     Visualization = "viz"
 #'   ),
 #'   helper_text = "Select all that apply."
@@ -358,7 +363,7 @@ carbon_checkbox_group <- function(
     unname(choices)
   )
 
-  htmltools::tag(
+  .build_carbon_tag(
     "cds-checkbox-group",
     c(
       list(
@@ -449,7 +454,7 @@ carbon_number_input <- function(
   ...
 ) {
   size <- match.arg(size)
-  htmltools::tag(
+  .build_carbon_tag(
     "cds-number-input",
     c(
       list(
@@ -555,7 +560,7 @@ carbon_radio_group <- function(
     unname(choices)
   )
 
-  htmltools::tag(
+  .build_carbon_tag(
     "cds-radio-button-group",
     c(
       list(
@@ -807,11 +812,15 @@ update_carbon_button <- function(
   msg <- list(...)
 
   if (!is.null(label)) {
-    msg$textContent <- label
+    msg$label <- label
   }
 
   if (!is.null(kind)) {
     msg$kind <- kind
+  }
+
+  if (!is.null(size)) {
+    msg$size <- size
   }
 
   session$sendInputMessage(session$ns(inputId), msg)
