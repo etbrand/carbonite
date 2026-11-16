@@ -1,8 +1,8 @@
-sub_id <- function(id, value) {
+.sub_id <- function(id, value) {
   paste0(id, "__", gsub("[^A-Za-z0-9_-]", "_", value))
 }
 
-normalize_choices <- function(x) {
+.normalize_choices <- function(x) {
   if (is.null(names(x))) {
     names(x) <- x
   }

@@ -124,7 +124,7 @@ carbon_select <- function(
   ...
 ) {
   size <- match.arg(size)
-  choices <- normalize_choices(choices)
+  choices <- .normalize_choices(choices)
 
   items <- Map(
     function(text, value) {
@@ -342,9 +342,10 @@ carbon_checkbox_group <- function(
   helper_text = NULL,
   ...
 ) {
+  choices <- .normalize_choices(choices)
   items <- Map(
     function(text, value) {
-      checkbox_id <- sub_id(inputId, value)
+      checkbox_id <- .sub_id(inputId, value)
       attrs <- list(id = checkbox_id, `label-text` = text, value = value)
 
       if (value %in% selected) {
@@ -532,9 +533,10 @@ carbon_radio_group <- function(
   helper_text = NULL,
   ...
 ) {
+  choices <- .normalize_choices(choices)
   items <- Map(
     function(text, value) {
-      radio_id <- sub_id(inputId, value)
+      radio_id <- .sub_id(inputId, value)
 
       attrs <- list(
         id = radio_id,
@@ -623,7 +625,7 @@ update_carbon_select <- function(
   }
 
   if (!is.null(choices)) {
-    msg$choices <- normalize_choices(choices)
+    msg$choices <- .normalize_choices(choices)
   }
 
   if (!is.null(helper_text)) {
@@ -689,7 +691,7 @@ update_carbon_radio_group <- function(
   }
 
   if (!is.null(choices)) {
-    msg$choices <- normalize_choices(choices)
+    msg$choices <- .normalize_choices(choices)
   }
 
   if (!is.null(helper_text)) {
@@ -755,7 +757,7 @@ update_carbon_checkbox_group <- function(
   }
 
   if (!is.null(choices)) {
-    msg$choices <- normalize_choices(choices)
+    msg$choices <- .normalize_choices(choices)
   }
 
   if (!is.null(helper_text)) {

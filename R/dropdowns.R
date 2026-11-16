@@ -1,17 +1,15 @@
 .create_items <- function(inputId, tag_name, choices, selected) {
+  choices <- .normalize_choices(choices)
   Map(
     function(text, value) {
-      option_id <- sub_id(inputId, value)
+      option_id <- .sub_id(inputId, value)
       attrs <- list(id = option_id, value = value)
 
-      if (!is.null(selected) && identical(value, selected)) {
-        attrs$selected <- TRUE
+      if (!is.null(selected) && value %in% selected) {
+        attrs$selected <- NA
       }
 
-      htmltools::tag(
-        paste0(tag_name, "-item"),
-        c(attrs, list(text))
-      )
+      htmltools::tag(paste0(tag_name, "-item"), c(attrs, text))
     },
     names(choices),
     unname(choices)
@@ -208,6 +206,7 @@ carbon_multiselect <- function(
         id = inputId,
         `title-text` = label,
         label = placeholder,
+        value = if (!is.null(selected)) paste(selected, collapse = ","),
         size = size,
         `helper-text` = helper_text,
         `data-sort` = tolower(as.character(sort_choices)),
@@ -281,7 +280,7 @@ update_carbon_dropdown <- function(
   }
 
   if (!is.null(choices)) {
-    msg$choices <- normalize_choices(choices)
+    msg$choices <- .normalize_choices(choices)
   }
 
   if (!is.null(helper_text)) {
@@ -358,7 +357,7 @@ update_carbon_combobox <- function(
   }
 
   if (!is.null(choices)) {
-    msg$choices <- normalize_choices(choices)
+    msg$choices <- .normalize_choices(choices)
   }
 
   if (!is.null(helper_text)) {
@@ -440,7 +439,7 @@ update_carbon_multiselect <- function(
   }
 
   if (!is.null(choices)) {
-    msg$choices <- normalize_choices(choices)
+    msg$choices <- .normalize_choices(choices)
   }
 
   if (!is.null(helper_text)) {

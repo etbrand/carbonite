@@ -18,17 +18,27 @@ $.extend(carbonMultiSelectBinding, {
         return elements;
     },
 
+    // Setting value attribute initially doesn't work - count badge doesn't show
+    initialize(el) {
+        const value = Array.from(
+            el.querySelectorAll(
+                "cds-multi-select-item[selected]"
+            )
+        )
+            .map(item => item.value)
+            .join(",");
+
+        if (value) {
+            el.value = value;
+        }
+    },
+
     getValue(el) {
-        console.log("getValue called");
-        console.log("el.value:", el.value);
-        console.log("typeof:", typeof el.value);
         return el.value ? el.value.split(",").sort() : [];
     },
 
     subscribe(el, callback) {
         el._carbonInputHandler = () => {
-            console.log("multiselect event fired");
-            console.log("value before callback:", el.value);
             callback(false);
         };
 
@@ -41,6 +51,7 @@ $.extend(carbonMultiSelectBinding, {
     },
 
     receiveMessage(el, data) {
+
         if (data.choices !== undefined) {
             rebuildCarbonChoices(el, data);
         }
