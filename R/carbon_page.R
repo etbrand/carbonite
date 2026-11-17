@@ -77,6 +77,9 @@ cds_header_name <- function(..., href = "#") {
 #' only need it when building a custom layout.
 #'
 #' @param title The application name shown in the header.
+#' @param menu_button Whether to show the menu button that opens the side
+#'   navigation on small screens. \code{carbon_page()} shows it only when
+#'   there is a \code{sidebar}.
 #'
 #' @return An \code{htmltools::tagList} containing a Carbon header.
 #'
@@ -85,11 +88,12 @@ cds_header_name <- function(..., href = "#") {
 #'
 #' @export
 carbon_header <- function(
-  title = "Application"
+  title = "Application",
+  menu_button = TRUE
 ) {
   htmltools::tagList(
     cds_header(
-      htmltools::tag("cds-header-menu-button", list()),
+      if (menu_button) htmltools::tag("cds-header-menu-button", list()),
       cds_header_name(
         title,
         href = "#"
@@ -105,17 +109,22 @@ carbon_header <- function(
 #'
 #' Navigation is hash-based: each \code{carbon_nav_item()} links to
 #' \code{#<route>}, and the panel whose \code{id} matches the route is shown.
-#' The current route is available on the server as \code{input$carbon_page}.
+#' The current route is available on the server as \code{input$carbon_page}
+#' (\code{NULL} when the page has no panels).
 #'
-#' @param ... \code{carbon_panel()} elements, one per route. Each must have a
-#'   unique \code{id}.
+#' Panels are optional. Content that isn't a \code{carbon_panel()} is always
+#' shown, so \code{carbon_page()} with no content gives an empty page, and a
+#' single-screen app can pass its UI directly.
+#'
+#' @param ... Page content: \code{carbon_panel()}s, one per route, each with
+#'   a unique \code{id}, and/or any other UI, which is always shown.
 #' @param title The application name shown in the header.
 #' @param theme The Carbon theme. One of \code{"white"}, \code{"g10"},
 #'   \code{"g90"}, or \code{"g100"}.
 #' @param sidebar Optional side navigation, created with
 #'   \code{carbon_sidebar()}.
 #' @param default_route The \code{id} of the panel to show when the URL has no
-#'   route. Defaults to the first panel.
+#'   route. Defaults to the first panel, if any.
 #'
 #' @return An HTML page suitable as a Shiny UI.
 #'
@@ -149,44 +158,80 @@ carbon_page <- function(
   sidebar = NULL,
   default_route = NULL
 ) {
-  page <- #htmltools::tagList(
-    htmltools::tags$html(
-      `data-carbon-theme` = theme,
-      carbon_dependency(),
-      carbon_page_dependency(),
-      htmltools::tags$div(
-        id = "carbon-app",
-        class = "carbon-app",
-        carbon_header(title),
-        sidebar,
-        htmltools::tags$main(
-          id = "carbon-main",
-          class = "carbon-main",
-          ...
-        )
-      )
-    )
-  panels <- page$children[[3]]$children[[3]]$children
+  content <- rlang::list2(...)
+  panel_ids <- .panel_ids(content)
+
+  if (anyDuplicated(panel_ids)) {
+    dups <- unique(panel_ids[duplicated(panel_ids)])
+    cli::cli_abort("Each {.fn carbon_panel} needs a unique {.arg id}; duplicated: {.val {dups}}.")
+  }
 
   if (is.null(default_route)) {
-    default_route <- panels[[1]]$attribs$id
+    default_route <- if (length(panel_ids)) panel_ids[[1]]
+  } else if (!default_route %in% panel_ids) {
+    cli::cli_abort(c(
+      "{.arg default_route} must be the {.arg id} of a {.fn carbon_panel}.",
+      "x" = "{.val {default_route}} isn't one.",
+      "i" = if (length(panel_ids)) "Panels: {.val {panel_ids}}." else "There are no panels."
+    ))
   }
-  page$children[[3]] <- htmltools::tagAppendAttributes(
-    page$children[[3]],
-    `data-default-route` = default_route
-  )
-  panels <- lapply(panels, function(panel) {
-    if (panel$attribs$id == default_route) {
-      panel <- htmltools::tagAppendAttributes(
-        panel,
-        class = "active"
-      )
-    }
-    panel
-  })
-  page$children[[3]]$children[[3]]$children <- panels
 
-  page
+  if (!is.null(default_route)) {
+    content <- .activate_panel(content, default_route)
+  }
+
+  htmltools::tags$html(
+    `data-carbon-theme` = theme,
+    carbon_dependency(),
+    carbon_page_dependency(),
+    htmltools::tags$div(
+      id = "carbon-app",
+      class = "carbon-app",
+      class = if (is.null(sidebar)) "carbon-app--no-sidebar",
+      `data-default-route` = default_route,
+      # The menu button only toggles the side navigation
+      carbon_header(title, menu_button = !is.null(sidebar)),
+      sidebar,
+      htmltools::tags$main(
+        id = "carbon-main",
+        class = "carbon-main",
+        content
+      )
+    )
+  )
+}
+
+.is_panel <- function(x) {
+  if (!inherits(x, "shiny.tag")) {
+    return(FALSE)
+  }
+  classes <- htmltools::tagGetAttribute(x, "class")
+  !is.null(classes) && "carbon-panel" %in% strsplit(classes, "\\s+")[[1]]
+}
+
+# Ids of the carbon_panel()s in page content, looking inside tagLists and
+# plain lists (but not inside other tags: panels are top-level routes).
+.panel_ids <- function(x) {
+  if (.is_panel(x)) {
+    return(htmltools::tagGetAttribute(x, "id"))
+  }
+  if (is.list(x) && !inherits(x, "shiny.tag")) {
+    return(unlist(lapply(x, .panel_ids), use.names = FALSE))
+  }
+  NULL
+}
+
+.activate_panel <- function(x, route) {
+  if (.is_panel(x)) {
+    if (identical(htmltools::tagGetAttribute(x, "id"), route)) {
+      x <- htmltools::tagAppendAttributes(x, class = "active")
+    }
+    return(x)
+  }
+  if (is.list(x) && !inherits(x, "shiny.tag")) {
+    x[] <- lapply(x, .activate_panel, route = route)
+  }
+  x
 }
 
 #' Carbon Side Navigation Link
