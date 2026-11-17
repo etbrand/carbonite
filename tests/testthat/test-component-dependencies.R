@@ -18,6 +18,7 @@ test_that("input components attach the carbon dependency", {
   expect_carbon_dependency(carbon_dropdown("x", choices = "a"))
   expect_carbon_dependency(carbon_combobox("x", choices = "a"))
   expect_carbon_dependency(carbon_multiselect("x", choices = "a"))
+  expect_carbon_dependency(carbon_toggle("x"))
 })
 
 test_that("layout and display components attach the carbon dependency", {
