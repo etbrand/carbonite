@@ -6,7 +6,10 @@ carbon_dependency <- function() {
       "www/carbon",
       package = "carbonite"
     ),
-    script = "carbonite.min.js",
+    # `defer` so Carbon's elements are defined after the page is parsed:
+    # otherwise an element can be upgraded before its children exist, and
+    # e.g. `cds-table` caches a null header row and throws on every update.
+    script = list(src = "carbonite.min.js", defer = NA),
     stylesheet = "carbonite.min.css"
   )
 }

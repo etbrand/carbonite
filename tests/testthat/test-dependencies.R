@@ -2,7 +2,10 @@ test_that("carbon_dependency returns valid htmlDependency", {
   dep <- carbon_dependency()
   expect_s3_class(dep, "html_dependency")
   expect_equal(dep$name, "carbon")
-  expect_true("carbonite.min.js" %in% dep$script)
+  expect_match(
+    htmltools::renderDependencies(list(dep), srcType = "file"),
+    '<script src="[^"]*carbonite.min.js" defer></script>'
+  )
 })
 
 test_that("Bundled JS files actually exist in inst/www", {

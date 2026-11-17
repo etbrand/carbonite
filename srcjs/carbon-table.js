@@ -1,75 +1,72 @@
-function setTableLoading(output, loading) {
-    const container = output.closest(".carbon-table-output");
-    const skeleton = container?.querySelector("cds-table-skeleton");
+// Loading skeleton for `carbon_table_output()`.
+//
+// The container holds the Shiny output and a skeleton `cds-table` (built in
+// R). The `carbon-table-output--loading` class decides which one shows; the
+// styles live in carbonite.scss. The skeleton is an ordinary `cds-table`, so
+// it gets its row heights from `size` exactly like the real table.
 
-    if (!skeleton) return;
+const CONTAINER = ".carbon-table-output";
+const OUTPUT = ".carbon-table-output__table";
+const SKELETON = ".carbon-table-output__skeleton";
+const LOADING = "carbon-table-output--loading";
 
-    skeleton.shadowRoot
-        ?.querySelectorAll("th")
-        .forEach(th => {
-            th.style.fontWeight = "600";
-        });
-
-    skeleton.showHeader = skeleton.dataset.showHeader === "true";
-    skeleton.showToolbar = skeleton.dataset.showToolbar === "true";
-    skeleton.headers = JSON.parse(skeleton.dataset.headers);
-
-    if (loading) {
-        output.style.visibility = "hidden";
-        output.style.position = "absolute";
-        output.style.inset = "0";
-        output.style.pointerEvents = "none";
-    } else {
-        output.style.visibility = "";
-        output.style.position = "";
-        output.style.inset = "";
-        output.style.pointerEvents = "";
-    }
-
-    skeleton.style.display = loading ? "block" : "none";
+export function setTableLoading(container, loading) {
+    container.classList.toggle(LOADING, loading);
 }
 
-$(document).on("shiny:recalculating", (event) => {
-    if (event.target.matches(".carbon-table-output__table")) {
-        setTableLoading(event.target, true);
-    }
-});
+// Replace the skeleton with a copy of the rendered table whose body cells
+// hold skeleton text, so it matches the table's columns, rows and size.
+export function snapshotTable(container) {
+    const table = container.querySelector(`${OUTPUT} cds-table`);
+    const skeleton = container.querySelector(SKELETON);
 
-$(document).on("shiny:value", (event) => {
-    if (event.target.matches(".carbon-table-output__table")) {
-        const output = event.target;
-        setTableLoading(output, false);
-        requestAnimationFrame(() => {
-            syncTableSkeleton(output);
-        });
-    }
-});
+    if (!table || !skeleton) return;
 
-function syncTableSkeleton(output) {
-    const container = output.closest(".carbon-table-output");
-    const skeleton = container?.querySelector("cds-table-skeleton");
-    const table = output.querySelector("cds-table");
+    const clone = table.cloneNode(true);
 
-    if (!skeleton || !table) return;
+    clone.classList.add(SKELETON.slice(1));
+    clone.setAttribute("aria-hidden", "true");
+    clone.removeAttribute("id");
+    clone.querySelectorAll("[id]").forEach(el => el.removeAttribute("id"));
+    clone.querySelectorAll("cds-table-cell").forEach(cell => {
+        const text = document.createElement("span");
+        text.className = "cds--skeleton__text";
+        cell.replaceChildren(text);
+    });
 
-    const rows = table.querySelectorAll(
-        "cds-table-body > cds-table-row"
-    );
-
-    const columns = table.querySelectorAll(
-        "cds-table-header-cell"
-    );
-
-    const headerRow = table.querySelector(
-        "cds-table-header-row"
-    );
-
-    skeleton.rowCount = rows.length;
-    skeleton.columnCount = columns.length;
-    skeleton.showHeader = table.dataset.showHeader === "true";
-    skeleton.showToolbar = table.dataset.showToolbar === "true";
-
-    if (headerRow?.size) {
-        skeleton.size = headerRow.size;
-    }
+    skeleton.replaceWith(clone);
 }
+
+function isSilentError(error) {
+    return [].concat(error?.type ?? []).includes("shiny.silent.error");
+}
+
+function containerOf(event) {
+    return event.target.matches?.(OUTPUT)
+        ? event.target.closest(CONTAINER)
+        : null;
+}
+
+// The old table is still in the DOM when recalculation starts, so take the
+// skeleton snapshot here rather than after the new value renders.
+$(document).on("shiny:recalculating", event => {
+    const container = containerOf(event);
+    if (!container) return;
+
+    snapshotTable(container);
+    setTableLoading(container, true);
+});
+
+$(document).on("shiny:value", event => {
+    const container = containerOf(event);
+    if (container) setTableLoading(container, false);
+});
+
+// Show real errors in place of the skeleton. Silent ones (`req()`) leave
+// nothing to show, so keep the skeleton up until a value arrives.
+$(document).on("shiny:error", event => {
+    const container = containerOf(event);
+    if (container && !isSilentError(event.error)) {
+        setTableLoading(container, false);
+    }
+});

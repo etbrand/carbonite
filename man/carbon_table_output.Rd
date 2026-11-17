@@ -7,9 +7,8 @@
 carbon_table_output(
   outputId,
   initial_columns = NULL,
-  size = "md",
-  show_header = FALSE,
-  show_toolbar = FALSE,
+  initial_rows = 5,
+  size = c("md", "xs", "sm", "lg", "xl"),
   ...
 )
 }
@@ -17,13 +16,16 @@ carbon_table_output(
 \item{outputId}{The output slot that will be used to render the table.}
 
 \item{initial_columns}{Optional column header labels for the skeleton
-shown before the first render. Names are ignored.}
+shown before the first render. Names are ignored. \code{NULL} shows five
+unlabelled columns.}
 
-\item{size}{Not yet implemented; currently has no effect.}
+\item{initial_rows}{Number of rows in the skeleton shown before the first
+render.}
 
-\item{show_header, show_toolbar}{Whether the skeleton shows a title area
-and a toolbar before the first render. Afterwards these follow the
-rendered \code{carbon_table()}.}
+\item{size}{The row height of the skeleton shown before the first render.
+One of \code{"xs"}, \code{"sm"}, \code{"md"}, \code{"lg"}, or
+\code{"xl"}. Match the \code{size} of the rendered \code{carbon_table()}
+so the layout doesn't jump when the table first appears.}
 
 \item{...}{Additional UI elements or attributes for the containing
 \code{div}.}
@@ -33,11 +35,17 @@ A \code{div} tag containing the output and its loading skeleton.
 }
 \description{
 Create a placeholder for a table rendered with \code{render_carbon_table()}.
-While the table is recalculating, a Carbon skeleton table is shown in its
-place.
+While the table is recalculating, a skeleton copy of the table is shown in
+its place. Before the first render the skeleton is built from
+\code{initial_columns}, \code{initial_rows}, and \code{size}; after that it
+mirrors the last rendered table (its columns, row count, and size).
 }
 \examples{
-carbon_table_output("cars", initial_columns = c("MPG", "Cylinders"))
+carbon_table_output(
+  "cars",
+  initial_columns = c("MPG", "Cylinders"),
+  size = "sm"
+)
 
 }
 \seealso{

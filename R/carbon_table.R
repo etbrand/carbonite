@@ -86,16 +86,21 @@ carbon_table_column <- function(
 #' Carbon Table Output
 #'
 #' Create a placeholder for a table rendered with \code{render_carbon_table()}.
-#' While the table is recalculating, a Carbon skeleton table is shown in its
-#' place.
+#' While the table is recalculating, a skeleton copy of the table is shown in
+#' its place. Before the first render the skeleton is built from
+#' \code{initial_columns}, \code{initial_rows}, and \code{size}; after that it
+#' mirrors the last rendered table (its columns, row count, and size).
 #'
 #' @param outputId The output slot that will be used to render the table.
 #' @param initial_columns Optional column header labels for the skeleton
-#'   shown before the first render. Names are ignored.
-#' @param size Not yet implemented; currently has no effect.
-#' @param show_header,show_toolbar Whether the skeleton shows a title area
-#'   and a toolbar before the first render. Afterwards these follow the
-#'   rendered \code{carbon_table()}.
+#'   shown before the first render. Names are ignored. \code{NULL} shows five
+#'   unlabelled columns.
+#' @param initial_rows Number of rows in the skeleton shown before the first
+#'   render.
+#' @param size The row height of the skeleton shown before the first render.
+#'   One of \code{"xs"}, \code{"sm"}, \code{"md"}, \code{"lg"}, or
+#'   \code{"xl"}. Match the \code{size} of the rendered \code{carbon_table()}
+#'   so the layout doesn't jump when the table first appears.
 #' @param ... Additional UI elements or attributes for the containing
 #'   \code{div}.
 #'
@@ -104,40 +109,93 @@ carbon_table_column <- function(
 #' @seealso \code{\link{render_carbon_table}}, \code{\link{carbon_table}}
 #'
 #' @examples
-#' carbon_table_output("cars", initial_columns = c("MPG", "Cylinders"))
+#' carbon_table_output(
+#'   "cars",
+#'   initial_columns = c("MPG", "Cylinders"),
+#'   size = "sm"
+#' )
 #'
 #' @export
 carbon_table_output <- function(
   outputId,
   initial_columns = NULL,
-  size = "md",
-  show_header = FALSE,
-  show_toolbar = FALSE,
+  initial_rows = 5,
+  size = c("md", "xs", "sm", "lg", "xl"),
   ...
 ) {
-  labels <- if (is.null(names(initial_columns))) {
-    initial_columns
-  } else {
-    unname(initial_columns)
+  size <- match.arg(size)
+
+  if (
+    !is.numeric(initial_rows) ||
+      length(initial_rows) != 1 ||
+      is.na(initial_rows) ||
+      initial_rows < 0
+  ) {
+    cli::cli_abort("{.arg initial_rows} must be a single non-negative number.")
   }
 
+  labels <- if (is.null(initial_columns)) {
+    rep("", 5)
+  } else {
+    as.character(unname(initial_columns))
+  }
+
+  # Starts in the loading state; srcjs/carbon-table.js toggles
+  # `carbon-table-output--loading` as the output recalculates and renders.
   htmltools::tags$div(
-    class = "carbon-table-output",
+    class = "carbon-table-output carbon-table-output--loading",
     list(...),
     shiny::uiOutput(
       outputId,
       class = "carbon-table-output__table"
     ),
-    .build_carbon_tag(
-      "cds-table-skeleton",
+    .carbon_table_skeleton(labels, n_rows = initial_rows, size = size)
+  )
+}
+
+# A regular `cds-table` whose cells hold Carbon skeleton text. Unlike
+# `cds-table-skeleton`, which draws its rows inside its shadow root and has no
+# `size`, this takes its row heights from `cds-table`, like the real table.
+.carbon_table_skeleton <- function(labels, n_rows, size) {
+  skeleton_text <- function() {
+    htmltools::tags$span(class = "cds--skeleton__text")
+  }
+
+  header_cells <- lapply(labels, function(label) {
+    htmltools::tag(
+      "cds-table-header-cell",
+      list(if (nzchar(label)) label else skeleton_text())
+    )
+  })
+
+  body_rows <- lapply(seq_len(n_rows), function(i) {
+    htmltools::tag(
+      "cds-table-row",
       c(
-        list(
-          class = "carbon-table-output__skeleton",
-          `data-show-header` = if (show_header) "true" else "false",
-          `data-show-toolbar` = if (show_toolbar) "true" else "false",
-          `data-headers` = jsonlite::toJSON(labels, auto_unbox = TRUE)
-        )
+        list(size = size),
+        lapply(labels, function(label) {
+          htmltools::tag("cds-table-cell", list(skeleton_text()))
+        })
       )
+    )
+  })
+
+  .build_carbon_tag(
+    "cds-table",
+    list(
+      class = "carbon-table-output__skeleton",
+      size = size,
+      `aria-hidden` = "true",
+      htmltools::tag(
+        "cds-table-head",
+        list(
+          htmltools::tag(
+            "cds-table-header-row",
+            c(list(size = size), header_cells)
+          )
+        )
+      ),
+      htmltools::tag("cds-table-body", body_rows)
     )
   )
 }
@@ -183,7 +241,25 @@ render_carbon_table <- function(
   shiny::renderUI(expr, env = env, quoted = TRUE)
 }
 
-carbon_table_header <- function(columns, size) {
+# Values that sort numerically in the browser, taken from the raw (unformatted)
+# column: numbers, dates/times, logicals, and factors (by level order).
+# Returns NULL for columns that sort by their displayed text; NA stays NA.
+.sort_values <- function(x) {
+  if (is.factor(x)) {
+    x <- as.integer(x)
+  } else if (is.logical(x) || inherits(x, c("Date", "POSIXt", "difftime"))) {
+    x <- as.numeric(x)
+  }
+
+  if (!is.numeric(x)) {
+    return(NULL)
+  }
+
+  # %.17g round-trips doubles exactly
+  ifelse(is.na(x), NA_character_, sprintf("%.17g", as.numeric(x)))
+}
+
+carbon_table_header <- function(columns, size, sort_values) {
   htmltools::tag(
     "cds-table-head",
     list(
@@ -192,12 +268,16 @@ carbon_table_header <- function(columns, size) {
         c(
           list(size = size),
           unname(
-            lapply(columns, \(column) {
+            lapply(names(columns), \(name) {
+              column <- columns[[name]]
               htmltools::tag(
                 "cds-table-header-cell",
                 list(
                   column$label,
-                  `is-sortable` = if (column$sortable) "none" else NULL
+                  `is-sortable` = if (column$sortable) "none" else NULL,
+                  `data-sort-type` = if (!is.null(sort_values[[name]])) {
+                    "numeric"
+                  }
                 )
               )
             })
@@ -208,7 +288,7 @@ carbon_table_header <- function(columns, size) {
   )
 }
 
-carbon_table_body <- function(data, columns, size) {
+carbon_table_body <- function(data, columns, size, sort_values) {
   for (name in names(columns)) {
     formatter <- columns[[name]]$formatter
 
@@ -217,15 +297,27 @@ carbon_table_body <- function(data, columns, size) {
     }
   }
 
+  # `data-row-index` lets srcjs/table-sort.js restore the original order
+  # when a column's sort is cleared.
   htmltools::tag(
     "cds-table-body",
     lapply(seq_len(nrow(data)), function(i) {
       htmltools::tag(
         "cds-table-row",
         c(
-          list(size = size),
+          list(size = size, `data-row-index` = i),
           lapply(names(columns), function(name) {
-            htmltools::tag("cds-table-cell", data[[name]][i])
+            sort_value <- sort_values[[name]][i]
+
+            htmltools::tag(
+              "cds-table-cell",
+              list(
+                data[[name]][i],
+                `data-sort-value` = if (!is.null(sort_value) && !is.na(sort_value)) {
+                  sort_value
+                }
+              )
+            )
           })
         )
       )
@@ -263,10 +355,11 @@ carbon_table_body <- function(data, columns, size) {
 #'   \code{formatter} argument of \code{carbon_table_column()} instead.
 #' @param size The row height. One of \code{"xs"}, \code{"sm"}, \code{"md"},
 #'   \code{"lg"}, or \code{"xl"}.
-#' @param show_header,show_toolbar Whether the loading skeleton in
-#'   \code{carbon_table_output()} shows a title area and a toolbar.
 #' @param sortable Whether columns show sort controls by default. Override
-#'   per column with \code{carbon_table_column(sortable = )}.
+#'   per column with \code{carbon_table_column(sortable = )}. Numeric, date,
+#'   date-time, and logical columns sort by their underlying values, and
+#'   factors by level order, regardless of any \code{formatter}. Other
+#'   columns sort by their displayed text. Missing values sort last.
 #' @param selectable Not yet implemented; currently has no effect.
 #' @param row_key Optional name of a column that uniquely identifies each row.
 #'   Its values must be unique and not missing. Currently it is only
@@ -301,8 +394,6 @@ carbon_table <- function(
   columns = NULL,
   formatters = NULL,
   size = c("md", "xs", "sm", "lg", "xl"),
-  show_header = FALSE,
-  show_toolbar = FALSE,
   sortable = FALSE,
   selectable = FALSE,
   row_key = NULL,
@@ -325,16 +416,25 @@ carbon_table <- function(
   }
 
   data <- data[, column_names, drop = FALSE]
+  sort_values <- lapply(data, .sort_values)
 
   .build_carbon_tag(
     "cds-table",
     c(
+      size = size,
       list(...),
       list(
-        `data-show-header` = if (show_header) "true" else "false",
-        `data-show-toolbar` = if (show_toolbar) "true" else "false",
-        carbon_table_header(columns = columns, size = size),
-        carbon_table_body(data = data, columns = columns, size = size)
+        carbon_table_header(
+          columns = columns,
+          size = size,
+          sort_values = sort_values
+        ),
+        carbon_table_body(
+          data = data,
+          columns = columns,
+          size = size,
+          sort_values = sort_values
+        )
       )
     )
   )

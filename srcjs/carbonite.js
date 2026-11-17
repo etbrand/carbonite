@@ -20,6 +20,7 @@ import "./icons.js";
 import "./carbonite.scss";
 import "./carbon-page.js";
 import "./carbon-table.js";
+import "./table-sort.js";
 import "./bindings/carbon-button.js";
 import "./bindings/carbon-text-input.js";
 import "./bindings/carbon-number-input.js";

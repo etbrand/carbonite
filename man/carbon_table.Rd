@@ -9,8 +9,6 @@ carbon_table(
   columns = NULL,
   formatters = NULL,
   size = c("md", "xs", "sm", "lg", "xl"),
-  show_header = FALSE,
-  show_toolbar = FALSE,
   sortable = FALSE,
   selectable = FALSE,
   row_key = NULL,
@@ -32,11 +30,11 @@ label.}
 \item{size}{The row height. One of \code{"xs"}, \code{"sm"}, \code{"md"},
 \code{"lg"}, or \code{"xl"}.}
 
-\item{show_header, show_toolbar}{Whether the loading skeleton in
-\code{carbon_table_output()} shows a title area and a toolbar.}
-
 \item{sortable}{Whether columns show sort controls by default. Override
-per column with \code{carbon_table_column(sortable = )}.}
+per column with \code{carbon_table_column(sortable = )}. Numeric, date,
+date-time, and logical columns sort by their underlying values, and
+factors by level order, regardless of any \code{formatter}. Other
+columns sort by their displayed text. Missing values sort last.}
 
 \item{selectable}{Not yet implemented; currently has no effect.}
 

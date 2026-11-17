@@ -1,5 +1,7 @@
 /* Can later use only needed styles @use "@carbon/styles"; @use "@carbon/themes";*/
-@use "@carbon/styles";
+// Fonts are copied next to the CSS by the copy-plex-fonts plugin in
+// vite.config.js; the default `~@ibm/plex` path only works with webpack.
+@use "@carbon/styles" with ($font-path: "fonts");
 @use '@carbon/styles/scss/theme' as *;
 @use '@carbon/styles/scss/themes';
 @use '@carbon/grid' as *;
@@ -25,4 +27,36 @@
     :root {
         @include theme(themes.$g100);
     }
+}
+
+// carbon_table_output(): toggled by srcjs/carbon-table.js.
+// While loading, the output is hidden but keeps a size (not `display: none`)
+// so Shiny doesn't treat it as hidden and suspend it.
+.carbon-table-output {
+    position: relative;
+}
+
+.carbon-table-output--loading > .carbon-table-output__table {
+    visibility: hidden;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.carbon-table-output:not(.carbon-table-output--loading) > .carbon-table-output__skeleton {
+    display: none;
+}
+
+// Carbon sizes skeleton text with block-size/inline-size, which inline
+// elements ignore.
+.carbon-table-output__skeleton .cds--skeleton__text {
+    display: block;
+    margin: 0;
+}
+
+// Carbon web-components bug: the sort icon svg is 32x32 and Carbon's CSS
+// only shrinks its width (to 1.25rem), so it keeps sortable headers at least
+// 2rem tall -- taller than xs rows (1.5rem). Match the height to the width.
+cds-table-header-cell::part(sort-icon) {
+    block-size: 1.25rem;
 }
