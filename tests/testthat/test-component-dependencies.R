@@ -41,6 +41,10 @@ test_that("layout and display components attach the carbon dependency", {
   expect_carbon_dependency(carbon_modal("x"))
   expect_carbon_dependency(carbon_modal_close_button())
   expect_carbon_dependency(carbon_inline_notification("x"))
+  expect_carbon_dependency(carbon_structured_list(data.frame(a = 1)))
+  expect_carbon_dependency(carbon_menu_button("m", "M", carbon_menu_item("a")))
+  expect_carbon_dependency(carbon_overflow_menu("m", carbon_menu_item("a")))
+  expect_carbon_dependency(carbon_menu_item("a"))
 })
 
 test_that("the carbon dependency is only rendered once for many components", {

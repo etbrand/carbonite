@@ -112,6 +112,14 @@ Selections are kept across pages, and \code{input$<id>_selected} includes
 rows on every page. The header checkbox selects or clears the rows on the
 current page.
 
+The current number of rows per page is available as
+\code{input$<id>_page_size}, where \code{<id>} is the table's \code{id}
+(inside \code{render_carbon_table()}, the output's id). It is reported
+when the table renders and whenever the user picks another size.
+Re-rendering the table resets it to \code{page_size}; pass
+\code{page_size = shiny::isolate(input$<id>_page_size)} (with a default
+for the first render) to keep the user's choice.
+
 A paginated table is returned wrapped in a \code{div} with its pagination
 bar; \code{...} and \code{id} still apply to the \code{cds-table}.
 }
