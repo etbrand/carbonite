@@ -104,13 +104,13 @@ describe("carbon.multiSelect", () => {
         expect(el.value).toBeUndefined();
     });
 
-    it("splits the comma-separated value into a sorted array", () => {
+    it("splits the comma-separated value into an array, preserving order", () => {
         const el = make();
 
         expect(binding.getValue(el)).toEqual([]);
 
         el.value = "c,a";
-        expect(binding.getValue(el)).toEqual(["a", "c"]);
+        expect(binding.getValue(el)).toEqual(["c", "a"]);
     });
 
     it("notifies Shiny on cds-multi-select-selected", () => {

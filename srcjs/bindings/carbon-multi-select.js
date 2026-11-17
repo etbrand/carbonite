@@ -34,7 +34,7 @@ $.extend(carbonMultiSelectBinding, {
     },
 
     getValue(el) {
-        return el.value ? el.value.split(",").sort() : [];
+        return el.value ? el.value.split(",") : [];
     },
 
     subscribe(el, callback) {
