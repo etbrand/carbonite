@@ -61,8 +61,17 @@ export function patchExpandableTile(Tile) {
     Tile.prototype._carbonitePatched = true;
 }
 
-customElements.whenDefined(TILE).then(() => {
-    patchExpandableTile(customElements.get(TILE));
+function install(Tile) {
+    patchExpandableTile(Tile);
     // Tiles that already rendered before the patch
     document.querySelectorAll(TILE).forEach(observeTile);
-});
+}
+
+// Patch synchronously when possible (Carbon's module, imported first in
+// carbonite.js, has already defined the element) so tiles' first render is
+// already patched.
+if (customElements.get(TILE)) {
+    install(customElements.get(TILE));
+} else {
+    customElements.whenDefined(TILE).then(() => install(customElements.get(TILE)));
+}

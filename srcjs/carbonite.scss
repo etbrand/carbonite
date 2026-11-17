@@ -72,3 +72,12 @@ cds-expandable-tile[with-interactive] > cds-tile-above-the-fold-content {
 cds-expandable-tile[with-interactive] > cds-tile-below-the-fold-content {
     padding-block-end: 2rem;
 }
+
+// A closed accordion item hides its content inside its shadow root, which
+// Shiny can't see: its visibility check walks up `parentElement`, so outputs
+// in a closed item count as visible and never suspend. Hiding the content in
+// the light DOM as well lets Shiny pause them until the item is opened.
+cds-accordion-item:not([open]) > :not([slot]),
+cds-accordion-item[disabled] > :not([slot]) {
+    display: none;
+}

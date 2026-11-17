@@ -1,4 +1,5 @@
 import "@carbon/web-components/es/components/ui-shell/index.js";
+import "@carbon/web-components/es/components/accordion/index.js";
 import "@carbon/web-components/es/components/grid/index.js";
 import "@carbon/web-components/es/components/button/index.js";
 import "@carbon/web-components/es/components/select/index.js";
@@ -23,6 +24,7 @@ import "./carbon-page.js";
 import "./carbon-table.js";
 import "./table-sort.js";
 import "./expandable-tile.js";
+import "./accordion.js";
 import "./bindings/carbon-button.js";
 import "./bindings/carbon-text-input.js";
 import "./bindings/carbon-number-input.js";
