@@ -21,7 +21,11 @@ carbon_select(
 \item{label}{Optional label displayed above the select input.}
 
 \item{choices}{A named or unnamed vector of choices. Names are displayed to
-the user, while values are returned to the server.}
+the user, while values are returned to the server. To group options
+under headings, pass a named list: each element with several choices
+(a vector of length > 1, or a list) becomes a group labelled with its
+name, and single choices stay ungrouped, as in
+\code{shiny::selectInput()}.}
 
 \item{selected}{The initially selected value. Must match one of the supplied
 choice values.}
@@ -61,6 +65,13 @@ carbon_select(
   label = "Size",
   choices = c("Small", "Medium", "Large"),
   size = "sm"
+)
+
+# Grouped: "All" on its own, then the rest under a "Sizes" heading
+carbon_select(
+  inputId = "size",
+  choices = list(All = "all", Sizes = c("Small", "Medium", "Large")),
+  selected = "all"
 )
 
 }

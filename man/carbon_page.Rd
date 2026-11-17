@@ -9,7 +9,8 @@ carbon_page(
   title = "Application",
   theme = "white",
   sidebar = NULL,
-  default_route = NULL
+  default_route = NULL,
+  header_content = NULL
 )
 }
 \arguments{
@@ -26,6 +27,9 @@ a unique \code{id}, and/or any other UI, which is always shown.}
 
 \item{default_route}{The \code{id} of the panel to show when the URL has no
 route. Defaults to the first panel, if any.}
+
+\item{header_content}{Optional UI shown on the right of the header, e.g.
+a control that applies to every panel. See \code{carbon_header()}.}
 }
 \value{
 An HTML page suitable as a Shiny UI.

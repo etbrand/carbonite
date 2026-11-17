@@ -19,16 +19,25 @@ cds_header_name <- function(..., href = "#") {
 #' @param menu_button Whether to show the menu button that opens the side
 #'   navigation on small screens. \code{carbon_page()} shows it only when
 #'   there is a \code{sidebar}.
+#' @param content Optional UI shown on the right of the header, e.g. a
+#'   \code{carbon_select()} with \code{size = "sm"} and no label, or
+#'   buttons. The header is 3rem (48px) tall.
 #'
 #' @return An \code{htmltools::tagList} containing a Carbon header.
 #'
 #' @examples
 #' carbon_header("Sales Dashboard")
 #'
+#' carbon_header(
+#'   "Sales Dashboard",
+#'   content = carbon_select("year", choices = 2024:2026, size = "sm")
+#' )
+#'
 #' @export
 carbon_header <- function(
   title = "Application",
-  menu_button = TRUE
+  menu_button = TRUE,
+  content = NULL
 ) {
   htmltools::tagList(
     cds_header(
@@ -36,7 +45,11 @@ carbon_header <- function(
       cds_header_name(
         title,
         href = "#"
-      )
+      ),
+      # Carbon's global-actions area, pushed to the right (carbonite.scss)
+      if (!is.null(content)) {
+        htmltools::div(class = "cds--header__global carbonite-header-content", content)
+      }
     )
   )
 }
@@ -64,6 +77,8 @@ carbon_header <- function(
 #'   \code{carbon_sidebar()}.
 #' @param default_route The \code{id} of the panel to show when the URL has no
 #'   route. Defaults to the first panel, if any.
+#' @param header_content Optional UI shown on the right of the header, e.g.
+#'   a control that applies to every panel. See \code{carbon_header()}.
 #'
 #' @return An HTML page suitable as a Shiny UI.
 #'
@@ -95,7 +110,8 @@ carbon_page <- function(
   title = "Application",
   theme = "white",
   sidebar = NULL,
-  default_route = NULL
+  default_route = NULL,
+  header_content = NULL
 ) {
   content <- rlang::list2(...)
   panel_ids <- .panel_ids(content)
@@ -130,7 +146,7 @@ carbon_page <- function(
       class = if (.is_rail(sidebar)) "carbon-app--rail",
       `data-default-route` = default_route,
       # The menu button only toggles the side navigation
-      carbon_header(title, menu_button = !is.null(sidebar)),
+      carbon_header(title, menu_button = !is.null(sidebar), content = header_content),
       sidebar,
       htmltools::tags$main(
         id = "carbon-main",

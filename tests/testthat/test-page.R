@@ -109,3 +109,16 @@ test_that("carbon_page() validates panels and default_route", {
   expect_error(carbon_page(carbon_panel("a", "A"), default_route = "zzz"), "default_route")
   expect_error(carbon_page(default_route = "a"), "no panels")
 })
+
+test_that("carbon_page puts header_content on the right of the header", {
+  page <- carbon_page(
+    carbon_panel("home", "Home"),
+    header_content = carbon_select("region", choices = c("A", "B"), size = "sm")
+  )
+
+  header <- find_tags(page, "cds-header")[[1]]
+  area <- find_tags(header, ".carbonite-header-content")
+  expect_length(area, 1)
+  expect_length(find_tags(area[[1]], "cds-select#region"), 1)
+  expect_length(find_tags(carbon_page(carbon_panel("home", "Home")), ".carbonite-header-content"), 0)
+})

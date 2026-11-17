@@ -89,7 +89,11 @@ carbon_button <- function(
 #' @param inputId The input slot that will be used to access the value.
 #' @param label Optional label displayed above the select input.
 #' @param choices A named or unnamed vector of choices. Names are displayed to
-#'   the user, while values are returned to the server.
+#'   the user, while values are returned to the server. To group options
+#'   under headings, pass a named list: each element with several choices
+#'   (a vector of length > 1, or a list) becomes a group labelled with its
+#'   name, and single choices stay ungrouped, as in
+#'   \code{shiny::selectInput()}.
 #' @param selected The initially selected value. Must match one of the supplied
 #'   choice values.
 #' @param size Optional Carbon size. Possible values are `"xs"`, `"sm"`, `"md"`, and
@@ -121,6 +125,13 @@ carbon_button <- function(
 #'   size = "sm"
 #' )
 #'
+#' # Grouped: "All" on its own, then the rest under a "Sizes" heading
+#' carbon_select(
+#'   inputId = "size",
+#'   choices = list(All = "all", Sizes = c("Small", "Medium", "Large")),
+#'   selected = "all"
+#' )
+#'
 #' @export
 carbon_select <- function(
   inputId,
@@ -133,24 +144,8 @@ carbon_select <- function(
   ...
 ) {
   size <- match.arg(size)
-  choices <- .normalize_choices(choices)
+  items <- .select_items(choices, selected)
 
-  items <- Map(
-    function(text, value) {
-      attrs <- list(value = value)
-
-      if (!is.null(selected) && identical(value, selected)) {
-        attrs$selected <- TRUE
-      }
-
-      htmltools::tag(
-        "cds-select-item",
-        c(attrs, list(text))
-      )
-    },
-    names(choices),
-    unname(choices)
-  )
   .build_carbon_tag(
     "cds-select",
     c(
@@ -931,4 +926,46 @@ update_carbon_number_input <- function(
   }
 
   session$sendInputMessage(inputId, msg)
+}
+
+# `cds-select-item`s for carbon_select(), with `cds-select-item-group`s for
+# grouped choices (a list whose elements with several choices are groups).
+.select_items <- function(choices, selected = NULL, call = rlang::caller_env()) {
+  item <- function(text, value) {
+    htmltools::tag(
+      "cds-select-item",
+      list(
+        value = value,
+        selected = if (!is.null(selected) && identical(value, selected)) TRUE,
+        text
+      )
+    )
+  }
+  flat_items <- function(x) {
+    x <- .normalize_choices(x)
+    unname(Map(item, names(x), unname(x)))
+  }
+
+  if (!is.list(choices)) {
+    return(flat_items(choices))
+  }
+
+  labels <- names(choices)
+  is_group <- vapply(choices, function(x) is.list(x) || length(x) > 1, logical(1))
+  if (any(is_group) && (is.null(labels) || any(!nzchar(labels[is_group])))) {
+    cli::cli_abort("Each group in {.arg choices} needs a name, its heading.", call = call)
+  }
+
+  unname(lapply(seq_along(choices), function(i) {
+    if (is_group[[i]]) {
+      htmltools::tag(
+        "cds-select-item-group",
+        c(list(label = labels[[i]]), flat_items(unlist(choices[[i]])))
+      )
+    } else {
+      value <- choices[[i]]
+      text <- if (!is.null(labels) && nzchar(labels[[i]])) labels[[i]] else value
+      item(text, value)
+    }
+  }))
 }

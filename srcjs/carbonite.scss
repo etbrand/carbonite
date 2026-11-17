@@ -90,6 +90,21 @@
     margin: 0;
 }
 
+// carbon_popover(padded = TRUE): Carbon leaves the popover content
+// unpadded, for the app to lay out.
+.carbonite-popover__body {
+    padding: 1rem;
+    max-inline-size: 22rem;
+}
+
+.carbonite-popover__body > :first-child {
+    margin-block-start: 0;
+}
+
+.carbonite-popover__body > :last-child {
+    margin-block-end: 0;
+}
+
 // show_carbon_notification(): toasts stack in the top-right corner, below
 // the 3rem UI shell header and above modals (z-index 9000). The stack lets
 // clicks through between toasts.
@@ -183,4 +198,21 @@ cds-accordion-item[disabled] > :not([slot]) {
 .carbonite-details-error {
     padding-block: 0.5rem;
     color: var(--cds-text-error, #da1e28);
+}
+
+// carbon_header(content = ) / carbon_page(header_content = ): UI on the right
+// of the 3rem header, vertically centred.
+.carbonite-header-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-inline-start: auto;
+    padding-inline: 1rem;
+    block-size: 100%;
+
+    // A select's form-item margins would push it off-centre
+    .cds--form-item,
+    cds-select {
+        margin: 0;
+    }
 }

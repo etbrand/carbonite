@@ -212,3 +212,38 @@ test_that("input constructors forward ... as attributes", {
   expect_equal(attr_of(carbon_checkbox_group("x", choices = "a", class = "wide"), "class"), "wide")
   expect_equal(attr_of(carbon_radio_group("x", choices = "a", class = "wide"), "class"), "wide")
 })
+
+test_that("carbon_select groups list elements with several choices", {
+  sel <- carbon_select(
+    "region",
+    choices = list("Whole world" = "World", Regions = c("Africa", "Asia"), Antarctica = "Antarctica"),
+    selected = "Asia"
+  )
+
+  # Opening tags in order: World on its own, the group with its two
+  # regions, then Antarctica on its own again
+  html <- as.character(sel)
+  opening <- regmatches(html, gregexpr("<cds-select-item(-group)? [^>]*>", html))[[1]]
+  expect_equal(
+    sub(" .*", "", opening),
+    c("<cds-select-item", "<cds-select-item-group", "<cds-select-item", "<cds-select-item", "<cds-select-item")
+  )
+  expect_match(html, '<cds-select-item value="World">Whole world</cds-select-item>', fixed = TRUE)
+
+  group <- find_tags(sel, "cds-select-item-group")[[1]]
+  expect_equal(attr_of(group, "label"), "Regions")
+  items <- find_tags(group, "cds-select-item")
+  expect_equal(vapply(items, attr_of, "", "value"), c("Africa", "Asia"))
+  expect_equal(vapply(items, has_attr, logical(1), "selected"), c(FALSE, TRUE))
+  expect_equal(attr_of(sel, "value"), "Asia")
+})
+
+test_that("carbon_select groups need headings", {
+  expect_error(carbon_select("x", choices = list("a", c("b", "c"))), "needs a name")
+})
+
+test_that("ungrouped choices render as before", {
+  sel <- carbon_select("x", choices = c(A = "a", B = "b"))
+  expect_length(find_tags(sel, "cds-select-item-group"), 0)
+  expect_length(find_tags(sel, "cds-select-item"), 2)
+})

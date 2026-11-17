@@ -4,7 +4,7 @@
 \alias{carbon_header}
 \title{Carbon Design System Header}
 \usage{
-carbon_header(title = "Application", menu_button = TRUE)
+carbon_header(title = "Application", menu_button = TRUE, content = NULL)
 }
 \arguments{
 \item{title}{The application name shown in the header.}
@@ -12,6 +12,10 @@ carbon_header(title = "Application", menu_button = TRUE)
 \item{menu_button}{Whether to show the menu button that opens the side
 navigation on small screens. \code{carbon_page()} shows it only when
 there is a \code{sidebar}.}
+
+\item{content}{Optional UI shown on the right of the header, e.g. a
+\code{carbon_select()} with \code{size = "sm"} and no label, or
+buttons. The header is 3rem (48px) tall.}
 }
 \value{
 An \code{htmltools::tagList} containing a Carbon header.
@@ -23,5 +27,10 @@ only need it when building a custom layout.
 }
 \examples{
 carbon_header("Sales Dashboard")
+
+carbon_header(
+  "Sales Dashboard",
+  content = carbon_select("year", choices = 2024:2026, size = "sm")
+)
 
 }
