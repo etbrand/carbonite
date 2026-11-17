@@ -91,6 +91,34 @@ describe("snapshotTable", () => {
         expect(skeletonOf(container).id).toBe("");
     });
 
+    it("pins the skeleton's columns to the table's column widths", () => {
+        const { output, container } = mountOutput();
+        const stubWidth = (el, width) => {
+            el.getBoundingClientRect = () => ({ width });
+        };
+        const table = output.querySelector("cds-table");
+        const [a, b] = table.querySelectorAll("cds-table-header-cell");
+        stubWidth(table, 400);
+        stubWidth(a, 100);
+        stubWidth(b, 300);
+
+        snapshotTable(container);
+        const widths = [...skeletonOf(container).querySelectorAll("cds-table-header-cell")]
+            .map(cell => cell.style.width);
+
+        expect(widths).toEqual(["25.000%", "75.000%"]);
+        expect(a.style.width).toBe("");
+    });
+
+    it("leaves column widths alone when the table has no layout", () => {
+        const { container } = mountOutput();
+
+        snapshotTable(container);
+
+        skeletonOf(container).querySelectorAll("cds-table-header-cell")
+            .forEach(cell => expect(cell.style.width).toBe(""));
+    });
+
     it("keeps the initial skeleton when nothing has rendered yet", () => {
         const { container, output } = mountOutput();
         output.replaceChildren();

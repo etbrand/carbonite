@@ -33,8 +33,27 @@ export function snapshotTable(container) {
         text.className = "cds--skeleton__text";
         cell.replaceChildren(text);
     });
+    copyColumnWidths(table, clone);
 
     skeleton.replaceWith(clone);
+}
+
+// Without the cell text, the skeleton's columns would size themselves
+// differently from the table's. Pin each column to the share of the table's
+// width it had, as a percentage so it still holds if the page is resized.
+function copyColumnWidths(table, clone) {
+    const tableWidth = table.getBoundingClientRect().width;
+    if (!tableWidth) return;
+
+    const sourceCells = table.querySelectorAll("cds-table-header-cell");
+    const cloneCells = clone.querySelectorAll("cds-table-header-cell");
+
+    sourceCells.forEach((cell, i) => {
+        const share = cell.getBoundingClientRect().width / tableWidth;
+        if (cloneCells[i] && share > 0) {
+            cloneCells[i].style.width = `${(share * 100).toFixed(3)}%`;
+        }
+    });
 }
 
 function isSilentError(error) {
