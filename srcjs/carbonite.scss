@@ -159,3 +159,28 @@ cds-accordion-item:not([open]) > :not([slot]),
 cds-accordion-item[disabled] > :not([slot]) {
     display: none;
 }
+
+// carbon_table(lazy_details = TRUE): shown in an expanded row until its
+// details load (see srcjs/table-lazy-details.js). Carbon sizes skeleton text
+// with block-size/inline-size, which inline elements ignore.
+.carbonite-details-loading {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-block: 0.5rem;
+
+    .cds--skeleton__text {
+        display: block;
+        margin: 0;
+        inline-size: min(36rem, 90%);
+    }
+
+    .cds--skeleton__text + .cds--skeleton__text {
+        inline-size: min(24rem, 60%);
+    }
+}
+
+.carbonite-details-error {
+    padding-block: 0.5rem;
+    color: var(--cds-text-error, #da1e28);
+}

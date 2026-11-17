@@ -240,7 +240,14 @@ render_carbon_table <- function(
   if (!quoted) {
     expr <- substitute(expr)
   }
-  shiny::renderUI(expr, env = env, quoted = TRUE)
+  func <- shiny::exprToFunction(expr, env, quoted = TRUE)
+
+  shiny::renderUI({
+    ui <- func()
+    # carbon_table(lazy_details = TRUE): answer requests for row details
+    .register_lazy_details(ui)
+    ui
+  })
 }
 
 # Values that sort numerically in the browser, taken from the raw (unformatted)
@@ -299,7 +306,8 @@ carbon_table_body <- function(
   selectable = FALSE,
   selected = character(0),
   page_size = NULL,
-  details = NULL
+  details = NULL,
+  lazy_details = FALSE
 ) {
   for (name in names(columns)) {
     formatter <- columns[[name]]$formatter
@@ -366,6 +374,8 @@ carbon_table_body <- function(
           list(
             `data-expands-row` = i,
             `data-empty` = if (is.null(content)) NA,
+            # A placeholder until srcjs/table-lazy-details.js loads the content
+            `data-lazy` = if (lazy_details) NA,
             `data-page-hidden` = page_hidden,
             content
           )
@@ -509,6 +519,17 @@ carbon_table_toolbar <- function(
 #' Columns used only in the details can be left out of \code{data} and
 #' passed as a vector instead: \code{row_details = notes}.
 #'
+#' With \code{lazy_details = TRUE}, a \code{row_details} function isn't
+#' called when the table renders, but on the server the first time each row
+#' is expanded, for that row only; a loading placeholder shows meanwhile.
+#' Use it when the details are slow or expensive to build, e.g. fetched from
+#' a web API. It needs the table to be rendered with
+#' \code{render_carbon_table()}. Every row gets an expand button, since
+#' which rows have details isn't known in advance; a row whose details turn
+#' out to be empty loses its button when expanded. The search box only
+#' matches the details of rows that have been expanded. The function's
+#' result isn't kept between renders, so cache slow lookups yourself.
+#'
 #' @section Pagination:
 #' With \code{page_size} set, the table shows that many rows at a time, with
 #' Carbon's pagination bar below it for moving between pages and changing
@@ -566,10 +587,16 @@ carbon_table_toolbar <- function(
 #' @param row_details Optional extra content for each row, shown below it
 #'   when the user expands the row: a function that takes a row (a one-row
 #'   data frame) and returns UI, or a vector or list with one element per
-#'   row. Rows whose content is \code{NULL}, \code{NA}, or \code{""} can't be
+#'   row. A function with a second argument also gets the row's number in
+#'   \code{data}, e.g. to look up data that isn't in the table. Rows whose content is \code{NULL}, \code{NA}, or \code{""} can't be
 #'   expanded. See the Expandable rows section.
 #' @param expand_all If \code{TRUE}, add a button to the header that expands
 #'   or collapses every row. Needs \code{row_details}.
+#' @param lazy_details If \code{TRUE}, call the \code{row_details} function
+#'   only when a row is first expanded, instead of for every row when the
+#'   table renders. Needs \code{row_details} to be a function, and the table
+#'   to be rendered with \code{render_carbon_table()}. See the Expandable rows
+#'   section.
 #' @param id Optional id for the table. Determines the selection input's
 #'   name. Inside \code{render_carbon_table()} it defaults to the output id;
 #'   in a module, wrap it in \code{ns()}.
@@ -646,6 +673,7 @@ carbon_table <- function(
   page_sizes = c(10, 25, 50, 100),
   row_details = NULL,
   expand_all = FALSE,
+  lazy_details = FALSE,
   id = NULL,
   ...
 ) {
@@ -653,7 +681,23 @@ carbon_table <- function(
   selection <- match.arg(selection)
   selectable <- selection != "none"
   page_sizes <- .check_page_sizes(page_size, page_sizes)
-  details <- .row_details(row_details, data)
+  if (!rlang::is_bool(lazy_details)) {
+    cli::cli_abort("{.arg lazy_details} must be {.code TRUE} or {.code FALSE}.")
+  }
+  if (lazy_details && !is.function(row_details)) {
+    cli::cli_abort("{.arg lazy_details} needs {.arg row_details} to be a function of a row.")
+  }
+
+  # Lazy: a placeholder for every row now; render_carbon_table() calls
+  # `row_details` for a row when it's expanded (see .register_lazy_details())
+  lazy <- if (lazy_details) {
+    list(token = .next_details_token(), fn = row_details, data = data, id = id)
+  }
+  details <- if (lazy_details) {
+    rep(list(.details_placeholder()), nrow(data))
+  } else {
+    .row_details(row_details, data)
+  }
 
   if (!rlang::is_bool(expand_all)) {
     cli::cli_abort("{.arg expand_all} must be {.code TRUE} or {.code FALSE}.")
@@ -703,6 +747,9 @@ carbon_table <- function(
         class = if (selectable) "carbonite-selectable-table",
         expandable = if (!is.null(details)) NA,
         `batch-expansion` = if (expand_all) NA,
+        # srcjs/table-lazy-details.js sends this back with each request, so
+        # replies meant for an earlier render are ignored
+        `data-lazy-details` = lazy$token,
         `data-row-key-type` = if (selectable) {
           if (is.null(row_key)) "index" else "key"
         }
@@ -733,23 +780,26 @@ carbon_table <- function(
           selectable = selectable,
           selected = selected,
           page_size = page_size,
-          details = details
+          details = details,
+          lazy_details = lazy_details
         )
       )
     )
   )
 
-  if (is.null(page_size)) {
-    return(table)
+  if (!is.null(page_size)) {
+    # srcjs/table-pagination.js finds the table and its pagination through
+    # this wrapper.
+    table <- htmltools::tags$div(
+      class = "carbonite-paginated-table",
+      table,
+      .carbon_table_pagination(nrow(data), page_size, page_sizes, size)
+    )
   }
 
-  # srcjs/table-pagination.js finds the table and its pagination through
-  # this wrapper.
-  htmltools::tags$div(
-    class = "carbonite-paginated-table",
-    table,
-    .carbon_table_pagination(nrow(data), page_size, page_sizes, size)
-  )
+  # Picked up by render_carbon_table()
+  attr(table, "carbonite_lazy_details") <- lazy
+  table
 }
 
 # Each row's details as a list (NULL for none), or NULL without `row_details`.
@@ -761,7 +811,7 @@ carbon_table <- function(
   n <- nrow(data)
 
   if (is.function(row_details)) {
-    details <- lapply(seq_len(n), function(i) row_details(data[i, , drop = FALSE]))
+    details <- lapply(seq_len(n), function(i) .call_row_details(row_details, data, i))
   } else if (is.atomic(row_details) || is.list(row_details) && !inherits(row_details, "shiny.tag")) {
     if (length(row_details) != n) {
       cli::cli_abort(
@@ -777,12 +827,139 @@ carbon_table <- function(
     )
   }
 
-  # No details for this row: NULL, NA, or ""
-  lapply(details, function(x) {
-    empty <- is.null(x) ||
-      (is.atomic(x) && length(x) == 1 && (is.na(x) || identical(as.character(x), "")))
-    if (empty) NULL else x
+  lapply(details, function(x) if (.is_empty_details(x)) NULL else x)
+}
+
+# Call a row_details function for row `i`: with the one-row data frame, and
+# also the row number if the function takes a second argument (e.g. to look
+# up data that isn't in the table's columns).
+.call_row_details <- function(fn, data, i) {
+  row <- data[i, , drop = FALSE]
+  args <- names(formals(fn))
+  if (length(args) >= 2 || "..." %in% args) fn(row, i) else fn(row)
+}
+
+# No details for a row: NULL, NA, or ""
+.is_empty_details <- function(x) {
+  is.null(x) ||
+    (is.atomic(x) && length(x) == 1 && (is.na(x) || identical(as.character(x), "")))
+}
+
+# Lazy row details ------------------------------------------------------------
+#
+# carbon_table(lazy_details = TRUE) renders a placeholder in each expanded
+# row and attaches its row_details function and data to the tag.
+# render_carbon_table() registers them for its output; when rows are
+# expanded, srcjs/table-lazy-details.js sends `input$<id>_details_request`
+# (list(token, rows)), and the observer below calls the function for those
+# rows and sends their HTML back in a "carbonite-table-details" message.
+
+.carbonite_state <- new.env(parent = emptyenv())
+
+# A new token for each lazy table, so replies meant for an earlier render
+# are ignored (by the server and the browser). A counter, so building a
+# table doesn't touch the random number generator.
+.next_details_token <- function() {
+  last <- .carbonite_state$details_token
+  .carbonite_state$details_token <- if (is.null(last)) 1 else last + 1
+  sprintf("lazy-%d", .carbonite_state$details_token)
+}
+
+# Shown until a lazy row's details arrive. No text, so the table's search
+# doesn't match it.
+.details_placeholder <- function() {
+  htmltools::div(
+    class = "carbonite-details-loading",
+    role = "status",
+    `aria-label` = "Loading details",
+    htmltools::span(class = "cds--skeleton__text"),
+    htmltools::span(class = "cds--skeleton__text")
+  )
+}
+
+.details_error <- function() {
+  htmltools::div(class = "carbonite-details-error", "Details couldn't be loaded.")
+}
+
+# Called by render_carbon_table() with what its expression returned
+.register_lazy_details <- function(ui, session = shiny::getDefaultReactiveDomain()) {
+  lazy <- attr(ui, "carbonite_lazy_details", exact = TRUE)
+  if (is.null(lazy) || is.null(session)) {
+    return(invisible())
+  }
+
+  # Like the selection input, named after the table's id or else the
+  # output's (already namespaced in a module). Requests and replies use
+  # full ids, so work at the root session.
+  base <- if (!is.null(lazy$id)) {
+    lazy$id
+  } else {
+    shiny::getCurrentOutputInfo(session = session)$name
+  }
+  root <- session$rootScope()
+  registry <- root$userData$carbonite_lazy_details
+  if (is.null(registry)) {
+    registry <- root$userData$carbonite_lazy_details <- new.env(parent = emptyenv())
+  }
+
+  first_render <- is.null(registry[[base]])
+  registry[[base]] <- lazy
+
+  # One observer per table, for the session; it always uses the latest render
+  if (first_render) {
+    input_name <- paste0(base, "_details_request")
+    shiny::observeEvent(
+      root$input[[input_name]],
+      .send_lazy_details(root, base, registry[[base]], root$input[[input_name]]),
+      domain = root
+    )
+  }
+  invisible()
+}
+
+# Build the requested rows' details and send them to the browser
+.send_lazy_details <- function(session, base, lazy, request) {
+  if (is.null(lazy) || !identical(request$token, lazy$token)) {
+    return(invisible())
+  }
+
+  rows <- suppressWarnings(as.integer(unlist(request$rows)))
+  rows <- unique(rows[!is.na(rows) & rows >= 1 & rows <= nrow(lazy$data)])
+
+  details <- lapply(rows, function(i) {
+    content <- tryCatch(
+      # Isolated: reading reactives here shouldn't make the observer depend
+      # on them
+      shiny::isolate(.call_row_details(lazy$fn, lazy$data, i)),
+      error = function(e) {
+        cli::cli_warn(c(
+          "{.arg row_details} failed for row {i} of table {.val {base}}.",
+          "x" = conditionMessage(e)
+        ))
+        .details_error()
+      }
+    )
+    if (.is_empty_details(content)) {
+      return(list(row = i, empty = TRUE))
+    }
+
+    rendered <- htmltools::renderTags(content)
+    list(
+      row = i,
+      empty = FALSE,
+      html = rendered$html,
+      deps = lapply(
+        htmltools::resolveDependencies(rendered$dependencies),
+        shiny::createWebDependency
+      )
+    )
   })
+
+  session$sendCustomMessage(
+    "carbonite-table-details",
+    list(table = base, token = lazy$token, details = details)
+  )
+  invisible(details)
 }
 
 .check_page_sizes <- function(page_size, page_sizes, call = rlang::caller_env()) {

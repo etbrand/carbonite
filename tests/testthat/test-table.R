@@ -373,3 +373,164 @@ test_that("row_details and expand_all are validated", {
   expect_error(carbon_table(df, expand_all = TRUE), "row_details")
   expect_error(carbon_table(df, row_details = letters[1:3], expand_all = "yes"), "expand_all")
 })
+
+# Lazy row details --------------------------------------------------------------
+
+test_that("lazy_details renders placeholders without calling row_details", {
+  calls <- 0
+  df <- data.frame(name = c("a", "b"), notes = c("x", "y"))
+  tbl <- carbon_table(
+    df,
+    columns = list(name = "Name"),
+    row_details = function(row) { calls <<- calls + 1; row$notes },
+    lazy_details = TRUE
+  )
+
+  expect_equal(calls, 0)
+  expect_true(has_attr(tbl, "expandable"))
+  expect_match(attr_of(tbl, "data-lazy-details"), "^lazy-[0-9]+$")
+
+  details <- find_tags(tbl, "cds-table-expanded-row")
+  expect_true(all(vapply(details, has_attr, logical(1), "data-lazy")))
+  expect_false(any(vapply(details, has_attr, logical(1), "data-empty")))
+  expect_match(as.character(details[[1]]), "carbonite-details-loading", fixed = TRUE)
+
+  # The function and the full data (including columns not shown) go to
+  # render_carbon_table()
+  lazy <- attr(tbl, "carbonite_lazy_details")
+  expect_identical(lazy$data, df)
+  expect_equal(lazy$token, attr_of(tbl, "data-lazy-details"))
+})
+
+test_that("each lazy table gets a new token; paginated tables keep the attribute", {
+  df <- data.frame(x = 1:4)
+  a <- carbon_table(df, row_details = function(row) "a", lazy_details = TRUE, page_size = 2)
+  b <- carbon_table(df, row_details = function(row) "b", lazy_details = TRUE)
+
+  expect_false(identical(attr(a, "carbonite_lazy_details")$token, attr(b, "carbonite_lazy_details")$token))
+  expect_true(has_attr(find_tags(a, "cds-table")[[1]], "data-lazy-details"))
+  expect_null(attr(carbon_table(df), "carbonite_lazy_details"))
+})
+
+test_that("lazy_details is validated", {
+  df <- data.frame(x = 1:2)
+
+  expect_error(carbon_table(df, row_details = c("a", "b"), lazy_details = TRUE), "function of a row")
+  expect_error(carbon_table(df, lazy_details = TRUE), "function of a row")
+  expect_error(carbon_table(df, row_details = function(row) "a", lazy_details = "yes"), "lazy_details")
+})
+
+# A stand-in session that records custom messages
+fake_message_session <- function() {
+  session <- new.env()
+  session$messages <- list()
+  session$sendCustomMessage <- function(type, message) {
+    session$messages[[length(session$messages) + 1]] <- list(type = type, message = message)
+  }
+  session
+}
+
+lazy_table <- function(fn, data = data.frame(name = c("a", "b", "c"), notes = c("x", "", "z"))) {
+  attr(carbon_table(data[, "name", drop = FALSE], row_details = fn, lazy_details = TRUE), "carbonite_lazy_details") |>
+    utils::modifyList(list(data = data))
+}
+
+test_that("requested rows' details are built and sent", {
+  session <- fake_message_session()
+  lazy <- lazy_table(function(row) if (nzchar(row$notes)) htmltools::p("Notes:", row$notes))
+
+  .send_lazy_details(session, "tbl", lazy, list(token = lazy$token, rows = list(1, 2, 99)))
+
+  expect_length(session$messages, 1)
+  msg <- session$messages[[1]]
+  expect_equal(msg$type, "carbonite-table-details")
+  expect_equal(msg$message$table, "tbl")
+  expect_equal(msg$message$token, lazy$token)
+
+  sent <- msg$message$details
+  expect_equal(vapply(sent, `[[`, integer(1), "row"), c(1L, 2L))  # 99 doesn't exist
+  expect_match(sent[[1]]$html, "<p>\\s*Notes:\\s*x\\s*</p>")
+  expect_false(sent[[1]]$empty)
+  expect_true(sent[[2]]$empty)  # notes was ""
+})
+
+test_that("details dependencies are sent with them", {
+  session <- fake_message_session()
+  dep <- htmltools::htmlDependency("mydep", "1.0", src = c(href = "https://example.com"), script = "my.js")
+  lazy <- lazy_table(function(row) htmltools::attachDependencies(htmltools::span("x"), dep))
+
+  .send_lazy_details(session, "tbl", lazy, list(token = lazy$token, rows = list(1)))
+
+  deps <- session$messages[[1]]$message$details[[1]]$deps
+  expect_equal(vapply(deps, `[[`, "", "name"), "mydep")
+})
+
+test_that("a failing row_details shows an error and warns, without stopping", {
+  session <- fake_message_session()
+  lazy <- lazy_table(function(row) if (row$name == "b") stop("boom") else "ok")
+
+  expect_warning(
+    .send_lazy_details(session, "tbl", lazy, list(token = lazy$token, rows = list(1, 2))),
+    "boom"
+  )
+
+  sent <- session$messages[[1]]$message$details
+  expect_match(sent[[1]]$html, "ok", fixed = TRUE)
+  expect_match(sent[[2]]$html, "couldn't be loaded", fixed = TRUE)
+})
+
+test_that("requests for an earlier render are ignored", {
+  session <- fake_message_session()
+  lazy <- lazy_table(function(row) "x")
+
+  .send_lazy_details(session, "tbl", lazy, list(token = "lazy-0", rows = list(1)))
+
+  expect_length(session$messages, 0)
+})
+
+test_that("render_carbon_table answers requests with the latest render", {
+  requests <- list()
+  local_mocked_bindings(.send_lazy_details = function(session, base, lazy, request) {
+    requests[[length(requests) + 1]] <<- list(base = base, token = lazy$token, request = request)
+  })
+
+  server <- function(input, output, session) {
+    n <- shiny::reactiveVal(2)
+    output$tbl <- render_carbon_table({
+      carbon_table(data.frame(x = seq_len(n())), row_details = function(row) row$x, lazy_details = TRUE)
+    })
+    shiny::observeEvent(input$more, n(3))
+  }
+
+  shiny::testServer(server, {
+    output$tbl
+    first <- session$userData$carbonite_lazy_details$tbl$token
+    session$setInputs(tbl_details_request = list(token = first, rows = list(1)))
+
+    session$setInputs(more = 1)
+    output$tbl
+    second <- session$userData$carbonite_lazy_details$tbl$token
+    session$setInputs(tbl_details_request = list(token = second, rows = list(3)))
+
+    expect_false(identical(first, second))
+    # One observer: one call per request, each with the render current then
+    expect_length(requests, 2)
+    expect_equal(requests[[1]]$base, "tbl")
+    expect_equal(requests[[1]]$token, first)
+    expect_equal(requests[[2]]$token, second)
+  })
+})
+
+test_that("a row_details function with a second argument gets the row number", {
+  notes <- c("first", "second")
+  eager <- carbon_table(data.frame(x = 1:2), row_details = function(row, i) notes[i])
+  expect_equal(find_tags(eager, "cds-table-expanded-row")[[2]]$children[[1]], "second")
+
+  session <- fake_message_session()
+  lazy <- attr(
+    carbon_table(data.frame(x = 1:2), row_details = function(row, i) notes[i], lazy_details = TRUE),
+    "carbonite_lazy_details"
+  )
+  .send_lazy_details(session, "tbl", lazy, list(token = lazy$token, rows = list(2)))
+  expect_match(session$messages[[1]]$message$details[[1]]$html, "second", fixed = TRUE)
+})

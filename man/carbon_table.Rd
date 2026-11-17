@@ -20,6 +20,7 @@ carbon_table(
   page_sizes = c(10, 25, 50, 100),
   row_details = NULL,
   expand_all = FALSE,
+  lazy_details = FALSE,
   id = NULL,
   ...
 )
@@ -71,11 +72,18 @@ bar. \code{page_size} is added if it isn't one of them.}
 \item{row_details}{Optional extra content for each row, shown below it
 when the user expands the row: a function that takes a row (a one-row
 data frame) and returns UI, or a vector or list with one element per
-row. Rows whose content is \code{NULL}, \code{NA}, or \code{""} can't be
+row. A function with a second argument also gets the row's number in
+\code{data}, e.g. to look up data that isn't in the table. Rows whose content is \code{NULL}, \code{NA}, or \code{""} can't be
 expanded. See the Expandable rows section.}
 
 \item{expand_all}{If \code{TRUE}, add a button to the header that expands
 or collapses every row. Needs \code{row_details}.}
+
+\item{lazy_details}{If \code{TRUE}, call the \code{row_details} function
+only when a row is first expanded, instead of for every row when the
+table renders. Needs \code{row_details} to be a function, and the table
+to be rendered with \code{render_carbon_table()}. See the Expandable rows
+section.}
 
 \item{id}{Optional id for the table. Determines the selection input's
 name. Inside \code{render_carbon_table()} it defaults to the output id;
@@ -120,6 +128,17 @@ text. Their content can include Shiny inputs and outputs.
 
 Columns used only in the details can be left out of \code{data} and
 passed as a vector instead: \code{row_details = notes}.
+
+With \code{lazy_details = TRUE}, a \code{row_details} function isn't
+called when the table renders, but on the server the first time each row
+is expanded, for that row only; a loading placeholder shows meanwhile.
+Use it when the details are slow or expensive to build, e.g. fetched from
+a web API. It needs the table to be rendered with
+\code{render_carbon_table()}. Every row gets an expand button, since
+which rows have details isn't known in advance; a row whose details turn
+out to be empty loses its button when expanded. The search box only
+matches the details of rows that have been expanded. The function's
+result isn't kept between renders, so cache slow lookups yourself.
 }
 
 \section{Pagination}{
