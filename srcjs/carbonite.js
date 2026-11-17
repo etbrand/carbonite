@@ -24,6 +24,7 @@ import "./carbon-table.js";
 import "./table-sort.js";
 import "./expandable-tile.js";
 import "./accordion.js";
+import "./carbon-modal.js";
 import "./bindings/carbon-button.js";
 import "./bindings/carbon-text-input.js";
 import "./bindings/carbon-number-input.js";

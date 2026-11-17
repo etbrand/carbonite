@@ -41,6 +41,35 @@ test_that("with a sidebar: two-column layout and a menu button", {
   expect_match(html, "<cds-header-menu-button>", fixed = TRUE)
 })
 
+test_that("with a rail sidebar: rail layout class and collapse-mode", {
+  page <- carbon_page(sidebar = carbon_sidebar(carbon_nav_item("a", "A", icon = "home"), rail = TRUE))
+  html <- render(page)
+
+  expect_match(html, 'class="carbon-app carbon-app--rail"', fixed = TRUE)
+  expect_match(html, '<cds-side-nav id="carbon-sidebar" collapse-mode="rail">', fixed = TRUE)
+})
+
+test_that("carbon_sidebar() is not a rail by default and validates rail", {
+  html <- render(carbon_sidebar(carbon_nav_item("a", "A")))
+
+  expect_false(grepl("collapse-mode", html, fixed = TRUE))
+  expect_error(carbon_sidebar(rail = "yes"), "rail")
+})
+
+test_that("carbon_nav_item() puts its icon in the title-icon slot", {
+  item <- carbon_nav_item("home", "Home", icon = "home")
+  svg <- htmltools::tagQuery(item)$find("svg")$selectedTags()[[1]]
+
+  expect_equal(htmltools::tagGetAttribute(svg, "slot"), "title-icon")
+  expect_match(render(item), "</svg>\\s*Home\\s*</cds-side-nav-link>")
+
+  custom <- carbon_nav_item("home", "Home", icon = carbon_icon("home", class = "x"))
+  expect_match(render(custom), 'slot="title-icon"', fixed = TRUE)
+
+  expect_false(grepl("<svg", render(carbon_nav_item("home", "Home")), fixed = TRUE))
+  expect_error(carbon_nav_item("home", "Home", icon = "not-an-icon"), "Unknown Carbon icon")
+})
+
 test_that("the first panel is the default route and starts active", {
   page <- carbon_page(
     htmltools::h1("Always shown"),

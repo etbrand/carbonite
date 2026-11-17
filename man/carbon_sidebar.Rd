@@ -4,11 +4,15 @@
 \alias{carbon_sidebar}
 \title{Carbon Side Navigation}
 \usage{
-carbon_sidebar(...)
+carbon_sidebar(..., rail = FALSE)
 }
 \arguments{
 \item{...}{\code{carbon_nav_item()} links, plus any additional attributes
 for the underlying \code{cds-side-nav} element.}
+
+\item{rail}{If \code{TRUE}, collapse the side navigation to a narrow rail
+showing only the links' icons; it expands over the page on hover or
+keyboard focus. Give every \code{carbon_nav_item()} an \code{icon}.}
 }
 \value{
 An HTML tag representing a Carbon side navigation.
@@ -20,6 +24,12 @@ Create the side navigation for \code{carbon_page()}.
 carbon_sidebar(
   carbon_nav_item("home", "Home"),
   carbon_nav_item("about", "About")
+)
+
+carbon_sidebar(
+  carbon_nav_item("home", "Home", icon = "home"),
+  carbon_nav_item("settings", "Settings", icon = "settings"),
+  rail = TRUE
 )
 
 }

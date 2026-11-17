@@ -37,6 +37,8 @@ test_that("layout and display components attach the carbon dependency", {
   expect_carbon_dependency(carbon_table(data.frame(a = 1)))
   expect_carbon_dependency(carbon_table(data.frame(a = 1), selection = "multiple", toolbar = carbon_table_toolbar()))
   expect_carbon_dependency(carbon_table_output("tbl"))
+  expect_carbon_dependency(carbon_modal("x"))
+  expect_carbon_dependency(carbon_modal_close_button())
 })
 
 test_that("the carbon dependency is only rendered once for many components", {

@@ -25,26 +25,63 @@ export function showPanel(id) {
         });
 }
 
+function reportRoute(route) {
+    if (window.Shiny?.setInputValue) {
+        Shiny.setInputValue("carbon_page", route, { priority: "event" });
+    }
+}
+
 export function navigate(route) {
     if (!app()) return;
 
     showPanel(route);
-    if (window.Shiny?.setInputValue) {
-        Shiny.setInputValue("carbon_page", route, { priority: "event" });
-    }
+    reportRoute(route);
+}
+
+// The first navigate() runs on DOMContentLoaded, before Shiny has connected
+// (Shiny.setInputValue doesn't exist yet), so the server never heard the
+// starting route. Report it again once connected. Shiny triggers this with
+// jQuery, which addEventListener() listeners don't receive.
+export function handleShinyConnected() {
+    if (app()) reportRoute(getCurrentRoute());
+}
+
+window.jQuery?.(document).on("shiny:connected", handleShinyConnected);
+
+// Each panel's id is its route, so the browser treats "#route" as an anchor
+// and scrolls the panel to the top of the viewport, hiding the start of the
+// page under the fixed header. Every route change starts at the top instead.
+function scrollToTop() {
+    window.scrollTo(0, 0);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     navigate(getCurrentRoute());
 });
 
-window.addEventListener("hashchange", () => {
-    navigate(getCurrentRoute());
+// Opening a link like /#about: undo the browser's jump to the panel
+window.addEventListener("load", () => {
+    if (app() && window.location.hash) scrollToTop();
 });
 
+// Back/forward or an edited URL: the browser has already jumped
+window.addEventListener("hashchange", () => {
+    if (!app()) return;
+    navigate(getCurrentRoute());
+    scrollToTop();
+});
+
+// Nav clicks: pushState updates the URL without the anchor jump (assigning
+// location.hash would scroll) and doesn't fire hashchange, so navigate here
 document.addEventListener("click", e => {
     const nav = e.target.closest?.("[data-carbon-nav]");
     if (!nav || !app()) return;
     e.preventDefault();
-    location.hash = nav.dataset.route;
+
+    const route = nav.dataset.route;
+    if (window.location.hash !== `#${route}`) {
+        history.pushState(null, "", `#${route}`);
+    }
+    navigate(route);
+    scrollToTop();
 });

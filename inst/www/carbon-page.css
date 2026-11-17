@@ -53,3 +53,16 @@ th {
 .carbon-app.carbon-app--no-sidebar {
     grid-template-columns: 1fr;
 }
+
+/* Rail sidebar (carbon_sidebar(rail = TRUE)): a 3rem icon strip at every
+   screen size. Carbon's nav inside the shadow root is position: fixed, so
+   when it expands on hover/focus it overlays the content instead of
+   pushing it aside. */
+.carbon-app.carbon-app--rail {
+    grid-template-columns: 3rem 1fr;
+}
+
+.carbon-app--rail cds-side-nav {
+    position: static;
+    width: 3rem;
+}

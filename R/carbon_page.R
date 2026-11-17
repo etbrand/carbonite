@@ -188,6 +188,7 @@ carbon_page <- function(
       id = "carbon-app",
       class = "carbon-app",
       class = if (is.null(sidebar)) "carbon-app--no-sidebar",
+      class = if (.is_rail(sidebar)) "carbon-app--rail",
       `data-default-route` = default_route,
       # The menu button only toggles the side navigation
       carbon_header(title, menu_button = !is.null(sidebar)),
@@ -199,6 +200,11 @@ carbon_page <- function(
       )
     )
   )
+}
+
+.is_rail <- function(sidebar) {
+  inherits(sidebar, "shiny.tag") &&
+    identical(htmltools::tagGetAttribute(sidebar, "collapse-mode"), "rail")
 }
 
 .is_panel <- function(x) {
@@ -241,16 +247,23 @@ carbon_page <- function(
 #'
 #' @param route The \code{id} of the \code{carbon_panel()} to show.
 #' @param label The link text.
+#' @param icon Optional icon shown before the label: an icon name (see
+#'   \code{carbon_icon_names()}) or a \code{carbon_icon()}. In a
+#'   \code{carbon_sidebar(rail = TRUE)} the icon stays visible while the
+#'   side navigation is collapsed, so give every link one.
 #'
 #' @return An HTML tag representing a Carbon side navigation link.
 #'
 #' @examples
 #' carbon_nav_item("reports", "Reports")
 #'
+#' carbon_nav_item("reports", "Reports", icon = "report")
+#'
 #' @export
 carbon_nav_item <- function(
   route,
-  label
+  label,
+  icon = NULL
 ) {
   .build_carbon_tag(
     "cds-side-nav-link",
@@ -258,6 +271,7 @@ carbon_nav_item <- function(
       href = paste0("#", route),
       `data-route` = route,
       `data-carbon-nav` = "",
+      if (!is.null(icon)) .slot_icon(icon, slot = "title-icon"),
       label
     )
   )
@@ -299,6 +313,9 @@ carbon_panel <- function(
 #'
 #' @param ... \code{carbon_nav_item()} links, plus any additional attributes
 #'   for the underlying \code{cds-side-nav} element.
+#' @param rail If \code{TRUE}, collapse the side navigation to a narrow rail
+#'   showing only the links' icons; it expands over the page on hover or
+#'   keyboard focus. Give every \code{carbon_nav_item()} an \code{icon}.
 #'
 #' @return An HTML tag representing a Carbon side navigation.
 #'
@@ -308,11 +325,25 @@ carbon_panel <- function(
 #'   carbon_nav_item("about", "About")
 #' )
 #'
+#' carbon_sidebar(
+#'   carbon_nav_item("home", "Home", icon = "home"),
+#'   carbon_nav_item("settings", "Settings", icon = "settings"),
+#'   rail = TRUE
+#' )
+#'
 #' @export
-carbon_sidebar <- function(...) {
+carbon_sidebar <- function(..., rail = FALSE) {
+  if (!rlang::is_bool(rail)) {
+    cli::cli_abort("{.arg rail} must be {.code TRUE} or {.code FALSE}.")
+  }
+
   .build_carbon_tag(
     "cds-side-nav",
-    list(id = "carbon-sidebar", ...)
+    list(
+      id = "carbon-sidebar",
+      `collapse-mode` = if (rail) "rail",
+      ...
+    )
   )
 }
 

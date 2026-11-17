@@ -4,12 +4,17 @@
 \alias{carbon_nav_item}
 \title{Carbon Side Navigation Link}
 \usage{
-carbon_nav_item(route, label)
+carbon_nav_item(route, label, icon = NULL)
 }
 \arguments{
 \item{route}{The \code{id} of the \code{carbon_panel()} to show.}
 
 \item{label}{The link text.}
+
+\item{icon}{Optional icon shown before the label: an icon name (see
+\code{carbon_icon_names()}) or a \code{carbon_icon()}. In a
+\code{carbon_sidebar(rail = TRUE)} the icon stays visible while the
+side navigation is collapsed, so give every link one.}
 }
 \value{
 An HTML tag representing a Carbon side navigation link.
@@ -20,5 +25,7 @@ Create a link in a \code{carbon_sidebar()} that navigates to a
 }
 \examples{
 carbon_nav_item("reports", "Reports")
+
+carbon_nav_item("reports", "Reports", icon = "report")
 
 }
