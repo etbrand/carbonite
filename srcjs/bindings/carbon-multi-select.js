@@ -7,15 +7,7 @@ const carbonMultiSelectBinding = new Shiny.InputBinding();
 
 $.extend(carbonMultiSelectBinding, {
     find(scope) {
-        const elements = $(scope).find("cds-multi-select[id]");
-
-        elements.each((_, el) => {
-            if (el.dataset.sort === "false") {
-                el.sortItems = items => [...items];
-            }
-        });
-
-        return elements;
+        return $(scope).find("cds-multi-select[id]");
     },
 
     // Setting value attribute initially doesn't work - count badge doesn't show

@@ -75,16 +75,6 @@ describe("carbon.multiSelect", () => {
         <cds-multi-select-item value="c" selected></cds-multi-select-item>
     </cds-multi-select>`);
 
-    it("disables Carbon's item sorting when data-sort is false", () => {
-        const unsorted = make(`data-sort="false"`);
-        binding.find(document.body);
-        expect(unsorted.sortItems(["b", "a"])).toEqual(["b", "a"]);
-
-        const sorted = make(`data-sort="true"`);
-        binding.find(document.body);
-        expect(sorted.sortItems).toBeUndefined();
-    });
-
     it("initialises its value from selected items", () => {
         const el = make();
         el.querySelectorAll("cds-multi-select-item").forEach(item => {

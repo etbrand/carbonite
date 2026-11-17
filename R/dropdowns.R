@@ -209,7 +209,8 @@ carbon_multiselect <- function(
         value = if (!is.null(selected)) paste(selected, collapse = ","),
         size = size,
         `helper-text` = helper_text,
-        `data-sort` = tolower(as.character(sort_choices)),
+        # Must be an attribute so Carbon doesn't reorder items on first render
+        `selection-feedback` = if (!sort_choices) "fixed",
         items
       ),
       list(...)

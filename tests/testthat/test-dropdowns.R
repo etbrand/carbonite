@@ -75,11 +75,13 @@ test_that("carbon_multiselect omits value when nothing is selected", {
   expect_false(any(vapply(items, has_attr, logical(1), "selected")))
 })
 
-test_that("carbon_multiselect sets data-sort for the binding", {
-  expect_equal(attr_of(carbon_multiselect("x", choices = "a"), "data-sort"), "false")
+test_that("carbon_multiselect fixes item order unless sorting is requested", {
   expect_equal(
-    attr_of(carbon_multiselect("x", choices = "a", sort_choices = TRUE), "data-sort"),
-    "true"
+    attr_of(carbon_multiselect("x", choices = "a"), "selection-feedback"),
+    "fixed"
+  )
+  expect_false(
+    has_attr(carbon_multiselect("x", choices = "a", sort_choices = TRUE), "selection-feedback")
   )
 })
 
