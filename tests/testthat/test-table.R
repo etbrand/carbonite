@@ -292,3 +292,84 @@ test_that("page_size and page_sizes are validated", {
   expect_error(carbon_table(df, page_size = 10, page_sizes = c(5, NA)), "page_sizes")
   expect_error(carbon_table(df, page_size = 10, page_sizes = numeric()), "page_sizes")
 })
+
+# Expandable rows ----------------------------------------------------------------
+
+body_children <- function(tbl) {
+  table <- if (tbl$name == "cds-table") tbl else find_tags(tbl, "cds-table")[[1]]
+  find_tags(table, "cds-table-body")[[1]]$children
+}
+
+test_that("without row_details there are no expanded rows", {
+  tbl <- carbon_table(data.frame(x = 1:3))
+
+  expect_false(has_attr(tbl, "expandable"))
+  expect_length(find_tags(tbl, "cds-table-expanded-row"), 0)
+})
+
+test_that("row_details as a vector: each row is followed by its expanded row", {
+  tbl <- carbon_table(data.frame(x = 1:3), row_details = c("one", NA, ""))
+
+  expect_true(has_attr(tbl, "expandable"))
+  expect_false(has_attr(tbl, "batch-expansion"))
+
+  kids <- body_children(tbl)
+  expect_equal(
+    vapply(kids, `[[`, character(1), "name"),
+    rep(c("cds-table-row", "cds-table-expanded-row"), 3)
+  )
+  expect_equal(vapply(kids[c(2, 4, 6)], attr_of, character(1), "data-expands-row"), c("1", "2", "3"))
+  expect_equal(kids[[2]]$children[[1]], "one")
+  # NA and "" mean no details: an empty placeholder, which Carbon's search needs
+  expect_equal(vapply(kids[c(2, 4, 6)], has_attr, logical(1), "data-empty"), c(FALSE, TRUE, TRUE))
+})
+
+test_that("row_details as a function gets each row and can return UI or NULL", {
+  df <- data.frame(name = c("a", "b"), n = c(1, 2))
+  tbl <- carbon_table(
+    df,
+    row_details = function(row) if (row$n > 1) htmltools::p("Row", row$name),
+    expand_all = TRUE
+  )
+
+  expect_true(has_attr(tbl, "batch-expansion"))
+  details <- find_tags(tbl, "cds-table-expanded-row")
+  expect_true(has_attr(details[[1]], "data-empty"))
+  expect_false(has_attr(details[[2]], "data-empty"))
+  expect_match(as.character(details[[2]]), "<p>\\s*Row\\s*b\\s*</p>")
+})
+
+test_that("row_details as a list holds tags", {
+  tbl <- carbon_table(
+    data.frame(x = 1:2),
+    row_details = list(htmltools::strong("bold"), NULL)
+  )
+  details <- find_tags(tbl, "cds-table-expanded-row")
+
+  expect_match(as.character(details[[1]]), "<strong>bold</strong>", fixed = TRUE)
+  expect_true(has_attr(details[[2]], "data-empty"))
+})
+
+test_that("expanded rows of rows off the first page start hidden too", {
+  tbl <- carbon_table(data.frame(x = 1:4), page_size = 2, row_details = letters[1:4])
+  details <- find_tags(tbl, "cds-table-expanded-row")
+
+  expect_equal(vapply(details, has_attr, logical(1), "data-page-hidden"), c(FALSE, FALSE, TRUE, TRUE))
+})
+
+test_that("row_details works with selection", {
+  tbl <- carbon_table(data.frame(x = 1:2), selection = "multiple", row_details = c("a", "b"))
+
+  expect_true(has_attr(tbl, "expandable"))
+  expect_true(has_attr(tbl, "is-selectable"))
+  expect_length(find_tags(tbl, "cds-table-row"), 2)
+})
+
+test_that("row_details and expand_all are validated", {
+  df <- data.frame(x = 1:3)
+
+  expect_error(carbon_table(df, row_details = c("a", "b")), "one element per row")
+  expect_error(carbon_table(df, row_details = htmltools::p("x")), "function of a row")
+  expect_error(carbon_table(df, expand_all = TRUE), "row_details")
+  expect_error(carbon_table(df, row_details = letters[1:3], expand_all = "yes"), "expand_all")
+})

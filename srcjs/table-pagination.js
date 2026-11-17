@@ -14,6 +14,7 @@
 // Carbon's guidance describes; selections on other pages are kept.
 
 import { syncCarbonSelection, isFiltered } from "./bindings/carbon-table-selection.js";
+import { expandedRowsByIndex } from "./table-expand.js";
 
 const WRAPPER = ".carbonite-paginated-table";
 export const PAGE_HIDDEN = "data-page-hidden";
@@ -55,7 +56,13 @@ export function showPage(table, pagination, page) {
 
     const start = (page - 1) * pageSize;
     const onPage = new Set(matching.slice(start, start + pageSize));
-    rows.forEach(row => row.toggleAttribute(PAGE_HIDDEN, !onPage.has(row)));
+    // A row's expanded row (carbon_table(row_details = )) is on its page
+    const details = expandedRowsByIndex(table);
+    rows.forEach(row => {
+        const hidden = !onPage.has(row);
+        row.toggleAttribute(PAGE_HIDDEN, hidden);
+        details.get(row.dataset.rowIndex)?.toggleAttribute(PAGE_HIDDEN, hidden);
+    });
 
     // Attributes as well as properties, so a copy of the pagination (the
     // carbon_table_output() loading skeleton) shows the same status.

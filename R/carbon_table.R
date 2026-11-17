@@ -298,7 +298,8 @@ carbon_table_body <- function(
   row_keys = as.character(seq_len(nrow(data))),
   selectable = FALSE,
   selected = character(0),
-  page_size = NULL
+  page_size = NULL,
+  details = NULL
 ) {
   for (name in names(columns)) {
     formatter <- columns[[name]]$formatter
@@ -314,12 +315,19 @@ carbon_table_body <- function(
   # `selection-name` makes Carbon draw the row's checkbox/radio.
   # `data-page-hidden` hides rows after the first page; srcjs/table-pagination.js
   # moves it as the user pages.
+  #
+  # With `details`, each row is followed by its `cds-table-expanded-row`,
+  # linked by `data-expands-row` (sorting and paging move the pair together).
+  # Every row gets one, empty (`data-empty`) when it has no details: Carbon's
+  # search reads each row's next sibling as its expanded row. Empty ones are
+  # hidden, and srcjs/table-expand.js removes their rows' expand buttons.
   htmltools::tag(
     "cds-table-body",
-    lapply(seq_len(nrow(data)), function(i) {
+    unlist(recursive = FALSE, lapply(seq_len(nrow(data)), function(i) {
       key <- row_keys[[i]]
+      page_hidden <- if (!is.null(page_size) && i > page_size) NA
 
-      htmltools::tag(
+      row <- htmltools::tag(
         "cds-table-row",
         c(
           list(
@@ -328,7 +336,7 @@ carbon_table_body <- function(
             `data-row-key` = key,
             `selection-name` = if (selectable) key,
             selected = if (selectable && key %in% selected) NA,
-            `data-page-hidden` = if (!is.null(page_size) && i > page_size) NA
+            `data-page-hidden` = page_hidden
           ),
           lapply(names(columns), function(name) {
             sort_value <- sort_values[[name]][i]
@@ -345,7 +353,25 @@ carbon_table_body <- function(
           })
         )
       )
-    })
+
+      if (is.null(details)) {
+        return(list(row))
+      }
+
+      content <- details[[i]]
+      list(
+        row,
+        htmltools::tag(
+          "cds-table-expanded-row",
+          list(
+            `data-expands-row` = i,
+            `data-empty` = if (is.null(content)) NA,
+            `data-page-hidden` = page_hidden,
+            content
+          )
+        )
+      )
+    }))
   )
 
   # htmltools::tag(
@@ -473,6 +499,16 @@ carbon_table_toolbar <- function(
 #' Re-rendering the table resets the selection to \code{selected}; pass
 #' \code{selected = shiny::isolate(input$<id>_selected)} to keep it.
 #'
+#' @section Expandable rows:
+#' With \code{row_details}, each row with details gets a button that
+#' expands it to show them in a full-width area below the row: e.g. a
+#' description, a nested table, or a plot. The details stay with their row
+#' when the table is sorted or paged, and the search box also matches their
+#' text. Their content can include Shiny inputs and outputs.
+#'
+#' Columns used only in the details can be left out of \code{data} and
+#' passed as a vector instead: \code{row_details = notes}.
+#'
 #' @section Pagination:
 #' With \code{page_size} set, the table shows that many rows at a time, with
 #' Carbon's pagination bar below it for moving between pages and changing
@@ -527,6 +563,13 @@ carbon_table_toolbar <- function(
 #'   section.
 #' @param page_sizes The choices of rows per page offered by the pagination
 #'   bar. \code{page_size} is added if it isn't one of them.
+#' @param row_details Optional extra content for each row, shown below it
+#'   when the user expands the row: a function that takes a row (a one-row
+#'   data frame) and returns UI, or a vector or list with one element per
+#'   row. Rows whose content is \code{NULL}, \code{NA}, or \code{""} can't be
+#'   expanded. See the Expandable rows section.
+#' @param expand_all If \code{TRUE}, add a button to the header that expands
+#'   or collapses every row. Needs \code{row_details}.
 #' @param id Optional id for the table. Determines the selection input's
 #'   name. Inside \code{render_carbon_table()} it defaults to the output id;
 #'   in a module, wrap it in \code{ns()}.
@@ -570,6 +613,22 @@ carbon_table_toolbar <- function(
 #' # 10 rows per page
 #' carbon_table(mtcars, sortable = TRUE, page_size = 10)
 #'
+#' # Expandable rows, from a function of each row
+#' cars <- data.frame(model = rownames(mtcars), mpg = mtcars$mpg)[1:5, ]
+#' carbon_table(
+#'   cars,
+#'   row_details = function(row) {
+#'     htmltools::p(row$model, "does", row$mpg, "miles per gallon.")
+#'   },
+#'   expand_all = TRUE
+#' )
+#'
+#' # ... or from a vector, one element per row (NA: no details)
+#' carbon_table(
+#'   cars,
+#'   row_details = c("Classic", NA, "Economical", NA, "Muscle car")
+#' )
+#'
 #' @export
 carbon_table <- function(
   data,
@@ -585,6 +644,8 @@ carbon_table <- function(
   toolbar = NULL,
   page_size = NULL,
   page_sizes = c(10, 25, 50, 100),
+  row_details = NULL,
+  expand_all = FALSE,
   id = NULL,
   ...
 ) {
@@ -592,6 +653,14 @@ carbon_table <- function(
   selection <- match.arg(selection)
   selectable <- selection != "none"
   page_sizes <- .check_page_sizes(page_size, page_sizes)
+  details <- .row_details(row_details, data)
+
+  if (!rlang::is_bool(expand_all)) {
+    cli::cli_abort("{.arg expand_all} must be {.code TRUE} or {.code FALSE}.")
+  }
+  if (expand_all && is.null(details)) {
+    cli::cli_abort("{.arg expand_all} needs {.arg row_details}.")
+  }
 
   row_keys <- get_row_keys(data, row_key)
   columns <- normalize_columns(data, columns, sortable)
@@ -632,6 +701,8 @@ carbon_table <- function(
         `is-selectable` = if (selectable) NA,
         radio = if (selection == "single") NA,
         class = if (selectable) "carbonite-selectable-table",
+        expandable = if (!is.null(details)) NA,
+        `batch-expansion` = if (expand_all) NA,
         `data-row-key-type` = if (selectable) {
           if (is.null(row_key)) "index" else "key"
         }
@@ -661,7 +732,8 @@ carbon_table <- function(
           row_keys = row_keys,
           selectable = selectable,
           selected = selected,
-          page_size = page_size
+          page_size = page_size,
+          details = details
         )
       )
     )
@@ -678,6 +750,39 @@ carbon_table <- function(
     table,
     .carbon_table_pagination(nrow(data), page_size, page_sizes, size)
   )
+}
+
+# Each row's details as a list (NULL for none), or NULL without `row_details`.
+.row_details <- function(row_details, data, call = rlang::caller_env()) {
+  if (is.null(row_details)) {
+    return(NULL)
+  }
+
+  n <- nrow(data)
+
+  if (is.function(row_details)) {
+    details <- lapply(seq_len(n), function(i) row_details(data[i, , drop = FALSE]))
+  } else if (is.atomic(row_details) || is.list(row_details) && !inherits(row_details, "shiny.tag")) {
+    if (length(row_details) != n) {
+      cli::cli_abort(
+        "{.arg row_details} must have one element per row of {.arg data} ({n}), not {length(row_details)}.",
+        call = call
+      )
+    }
+    details <- lapply(seq_len(n), function(i) row_details[[i]])
+  } else {
+    cli::cli_abort(
+      "{.arg row_details} must be a function of a row, or a vector or list with one element per row.",
+      call = call
+    )
+  }
+
+  # No details for this row: NULL, NA, or ""
+  lapply(details, function(x) {
+    empty <- is.null(x) ||
+      (is.atomic(x) && length(x) == 1 && (is.na(x) || identical(as.character(x), "")))
+    if (empty) NULL else x
+  })
 }
 
 .check_page_sizes <- function(page_size, page_sizes, call = rlang::caller_env()) {

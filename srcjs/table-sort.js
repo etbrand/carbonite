@@ -10,6 +10,8 @@
 // document, so it runs afterwards (same event, bubbling) and puts the rows
 // in the right order.
 
+import { expandedRowsByIndex } from "./table-expand.js";
+
 function cellsOf(row) {
     return row.querySelectorAll(":scope > cds-table-cell");
 }
@@ -77,7 +79,15 @@ export function sortTableRows(table, columnIndex, direction) {
         return a.index - b.index;
     });
 
-    keyed.forEach(({ row }) => body.appendChild(row));
+    // Each row's expanded row (carbon_table(row_details = )) goes right
+    // after it. They're matched by index: Carbon's own sort pairs them by
+    // position, which may already have mismatched them.
+    const details = expandedRowsByIndex(table);
+    keyed.forEach(({ row }) => {
+        body.appendChild(row);
+        const expanded = details.get(row.dataset.rowIndex);
+        if (expanded) body.appendChild(expanded);
+    });
     return true;
 }
 

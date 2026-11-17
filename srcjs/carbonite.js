@@ -29,6 +29,7 @@ import "@carbon/web-components/es/components/toggle/index.js";
 import "./carbonite.scss";
 import "./carbon-page.js";
 import "./carbon-table.js";
+import "./table-expand.js";
 import "./table-sort.js";
 import "./table-pagination.js";
 import "./expandable-tile.js";

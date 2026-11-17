@@ -120,7 +120,15 @@ cds-content-switcher-item[disabled] > .carbonite-switch-label {
 // carbon_table(page_size = ): rows off the current page, set by
 // srcjs/table-pagination.js. (A document style on the host element beats
 // the row's own :host styles.)
-cds-table-row[data-page-hidden] {
+cds-table-row[data-page-hidden],
+cds-table-expanded-row[data-page-hidden] {
+    display: none;
+}
+
+// carbon_table(row_details = ): the placeholder expanded row of a row
+// without details (see srcjs/table-expand.js). Hidden even when "expand
+// all" expands it.
+cds-table-expanded-row[data-empty] {
     display: none;
 }
 

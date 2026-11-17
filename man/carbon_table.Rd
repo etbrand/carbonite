@@ -18,6 +18,8 @@ carbon_table(
   toolbar = NULL,
   page_size = NULL,
   page_sizes = c(10, 25, 50, 100),
+  row_details = NULL,
+  expand_all = FALSE,
   id = NULL,
   ...
 )
@@ -66,6 +68,15 @@ section.}
 \item{page_sizes}{The choices of rows per page offered by the pagination
 bar. \code{page_size} is added if it isn't one of them.}
 
+\item{row_details}{Optional extra content for each row, shown below it
+when the user expands the row: a function that takes a row (a one-row
+data frame) and returns UI, or a vector or list with one element per
+row. Rows whose content is \code{NULL}, \code{NA}, or \code{""} can't be
+expanded. See the Expandable rows section.}
+
+\item{expand_all}{If \code{TRUE}, add a button to the header that expands
+or collapses every row. Needs \code{row_details}.}
+
 \item{id}{Optional id for the table. Determines the selection input's
 name. Inside \code{render_carbon_table()} it defaults to the output id;
 in a module, wrap it in \code{ns()}.}
@@ -97,6 +108,18 @@ with \code{update_carbon_table_selection()}.
 
 Re-rendering the table resets the selection to \code{selected}; pass
 \code{selected = shiny::isolate(input$<id>_selected)} to keep it.
+}
+
+\section{Expandable rows}{
+
+With \code{row_details}, each row with details gets a button that
+expands it to show them in a full-width area below the row: e.g. a
+description, a nested table, or a plot. The details stay with their row
+when the table is sorted or paged, and the search box also matches their
+text. Their content can include Shiny inputs and outputs.
+
+Columns used only in the details can be left out of \code{data} and
+passed as a vector instead: \code{row_details = notes}.
 }
 
 \section{Pagination}{
@@ -154,6 +177,22 @@ carbon_table(
 
 # 10 rows per page
 carbon_table(mtcars, sortable = TRUE, page_size = 10)
+
+# Expandable rows, from a function of each row
+cars <- data.frame(model = rownames(mtcars), mpg = mtcars$mpg)[1:5, ]
+carbon_table(
+  cars,
+  row_details = function(row) {
+    htmltools::p(row$model, "does", row$mpg, "miles per gallon.")
+  },
+  expand_all = TRUE
+)
+
+# ... or from a vector, one element per row (NA: no details)
+carbon_table(
+  cars,
+  row_details = c("Classic", NA, "Economical", NA, "Muscle car")
+)
 
 }
 \seealso{

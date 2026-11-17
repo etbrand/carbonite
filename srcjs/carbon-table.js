@@ -38,7 +38,9 @@ export function snapshotTable(container) {
     clone.querySelectorAll(".carbonite-table-selection").forEach(marker => marker.remove());
     clone.removeAttribute("id");
     clone.querySelectorAll("[id]").forEach(el => el.removeAttribute("id"));
-    clone.querySelectorAll("cds-table-cell").forEach(cell => {
+    // Expanded rows' details (carbon_table(row_details = )) too: an open one
+    // keeps its place, as a line of skeleton text.
+    clone.querySelectorAll("cds-table-cell, cds-table-expanded-row").forEach(cell => {
         const text = document.createElement("span");
         text.className = "cds--skeleton__text";
         cell.replaceChildren(text);
