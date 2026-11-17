@@ -111,6 +111,12 @@
     margin: 0;
 }
 
+// carbon_content_switcher(): Carbon greys out a disabled option's label only
+// when it is slotted as a <p>; carbon_switch() labels are spans.
+cds-content-switcher-item[disabled] > .carbonite-switch-label {
+    color: var(--cds-text-disabled, rgba(22, 22, 22, 0.25));
+}
+
 // carbon_table(page_size = ): rows off the current page, set by
 // srcjs/table-pagination.js. (A document style on the host element beats
 // the row's own :host styles.)
