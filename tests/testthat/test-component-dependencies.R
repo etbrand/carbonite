@@ -40,6 +40,7 @@ test_that("layout and display components attach the carbon dependency", {
   expect_carbon_dependency(carbon_table_output("tbl"))
   expect_carbon_dependency(carbon_modal("x"))
   expect_carbon_dependency(carbon_modal_close_button())
+  expect_carbon_dependency(carbon_inline_notification("x"))
 })
 
 test_that("the carbon dependency is only rendered once for many components", {

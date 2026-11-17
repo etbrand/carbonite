@@ -1,25 +1,5 @@
 render <- function(x) as.character(htmltools::renderTags(x)$html)
 
-# A session stand-in for insertUI()/removeUI(): runs flush callbacks straight
-# away, in order, and records what they send.
-ui_session <- function() {
-  session <- new.env()
-  session$singletons <- character()
-  session$sent <- list()
-  session$onFlushed <- function(callback, once = TRUE) callback()
-  session$sendInsertUI <- function(selector, multiple, where, content) {
-    session$sent[[length(session$sent) + 1]] <- list(
-      type = "insert", selector = selector, where = where, html = content$html
-    )
-  }
-  session$sendRemoveUI <- function(selector, multiple) {
-    session$sent[[length(session$sent) + 1]] <- list(
-      type = "remove", selector = selector, multiple = multiple
-    )
-  }
-  session
-}
-
 test_that("carbon_modal() builds an open modal with header, body, and footer", {
   modal <- carbon_modal(
     htmltools::p("Body text"),

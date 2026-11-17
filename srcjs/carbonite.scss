@@ -90,6 +90,27 @@
     margin: 0;
 }
 
+// show_carbon_notification(): toasts stack in the top-right corner, below
+// the 3rem UI shell header and above modals (z-index 9000). The stack lets
+// clicks through between toasts.
+.carbonite-toast-stack {
+    position: fixed;
+    inset-block-start: 3.5rem;
+    inset-inline-end: 1rem;
+    z-index: 9500;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    max-inline-size: calc(100vw - 2rem);
+    pointer-events: none;
+}
+
+.carbonite-toast-stack > * {
+    pointer-events: auto;
+    margin: 0;
+}
+
 // carbon_table(page_size = ): rows off the current page, set by
 // srcjs/table-pagination.js. (A document style on the host element beats
 // the row's own :host styles.)

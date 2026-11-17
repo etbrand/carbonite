@@ -34,3 +34,24 @@ attr_of <- function(tag, name) {
 has_attr <- function(tag, name) {
   htmltools::tagHasAttribute(tag, name)
 }
+
+# A session stand-in for insertUI()/removeUI(): runs flush callbacks straight
+# away, in order, and records what they send (`immediate = TRUE` skips
+# onFlushed, with the same result).
+ui_session <- function() {
+  session <- new.env()
+  session$singletons <- character()
+  session$sent <- list()
+  session$onFlushed <- function(callback, once = TRUE) callback()
+  session$sendInsertUI <- function(selector, multiple, where, content) {
+    session$sent[[length(session$sent) + 1]] <- list(
+      type = "insert", selector = selector, where = where, html = content$html
+    )
+  }
+  session$sendRemoveUI <- function(selector, multiple) {
+    session$sent[[length(session$sent) + 1]] <- list(
+      type = "remove", selector = selector, multiple = multiple
+    )
+  }
+  session
+}
