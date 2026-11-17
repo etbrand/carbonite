@@ -18,7 +18,6 @@ import "@carbon/web-components/es/components/tabs/index.js";
 import "@carbon/web-components/es/components/tag/index.js";
 import "@carbon/web-components/es/components/tile/index.js";
 import "@carbon/web-components/es/components/toggle/index.js";
-import "./icons.js";
 import "./carbonite.scss";
 import "./carbon-page.js";
 import "./carbon-table.js";

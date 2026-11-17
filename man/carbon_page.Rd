@@ -13,8 +13,8 @@ carbon_page(
 )
 }
 \arguments{
-\item{...}{\code{carbon_panel()} elements, one per route. Each must have a
-unique \code{id}.}
+\item{...}{Page content: \code{carbon_panel()}s, one per route, each with
+a unique \code{id}, and/or any other UI, which is always shown.}
 
 \item{title}{The application name shown in the header.}
 
@@ -25,7 +25,7 @@ unique \code{id}.}
 \code{carbon_sidebar()}.}
 
 \item{default_route}{The \code{id} of the panel to show when the URL has no
-route. Defaults to the first panel.}
+route. Defaults to the first panel, if any.}
 }
 \value{
 An HTML page suitable as a Shiny UI.
@@ -37,7 +37,12 @@ navigation, and a main area that shows one \code{carbon_panel()} at a time.
 \details{
 Navigation is hash-based: each \code{carbon_nav_item()} links to
 \code{#<route>}, and the panel whose \code{id} matches the route is shown.
-The current route is available on the server as \code{input$carbon_page}.
+The current route is available on the server as \code{input$carbon_page}
+(\code{NULL} when the page has no panels).
+
+Panels are optional. Content that isn't a \code{carbon_panel()} is always
+shown, so \code{carbon_page()} with no content gives an empty page, and a
+single-screen app can pass its UI directly.
 }
 \examples{
 ui <- carbon_page(

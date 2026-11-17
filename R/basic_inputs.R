@@ -9,8 +9,9 @@
 #' @param inputId The input slot that will be used to access the button click
 #'   event.
 #' @param label The button label.
-#' @param icon Optional name of a Carbon icon shown in the button. Currently
-#'   one of \code{"add"}, \code{"edit"}, or \code{"trash-can"}.
+#' @param icon Optional icon shown in the button: the name of any Carbon
+#'   icon (see \code{carbon_icon_names()}), e.g. \code{"add"}, or a
+#'   \code{carbon_icon()}.
 #' @param kind The Carbon button style. One of \code{"primary"},
 #'   \code{"secondary"}, \code{"tertiary"}, \code{"ghost"},
 #'   \code{"danger"}, \code{"danger-tertiary"}, or
@@ -68,7 +69,13 @@ carbon_button <- function(
   .build_carbon_tag(
     "cds-button",
     c(
-      list(id = inputId, kind = kind, size = size, `data-icon` = icon, label),
+      list(
+        id = inputId,
+        kind = kind,
+        size = size,
+        if (!is.null(icon)) .slot_icon(icon),
+        label
+      ),
       list(...)
     )
   )
@@ -281,7 +288,7 @@ update_carbon_text_input <- function(
     msg$helperText <- helper_text
   }
 
-  session$sendInputMessage(session$ns(inputId), msg)
+  session$sendInputMessage(inputId, msg)
 }
 
 #' Carbon Design System Checkbox Group
@@ -637,7 +644,7 @@ update_carbon_select <- function(
     msg$helperText <- helper_text
   }
 
-  session$sendInputMessage(session$ns(inputId), msg)
+  session$sendInputMessage(inputId, msg)
 }
 
 #' Update a Carbon Radio Button Group
@@ -703,7 +710,7 @@ update_carbon_radio_group <- function(
     msg$helperText <- helper_text
   }
 
-  session$sendInputMessage(session$ns(inputId), msg)
+  session$sendInputMessage(inputId, msg)
 }
 
 #' Update a Carbon Checkbox Group
@@ -769,7 +776,7 @@ update_carbon_checkbox_group <- function(
     msg$helperText <- helper_text
   }
 
-  session$sendInputMessage(session$ns(inputId), msg)
+  session$sendInputMessage(inputId, msg)
 }
 
 #' Update a Carbon Button
@@ -783,6 +790,8 @@ update_carbon_checkbox_group <- function(
 #'   unchanged.
 #' @param size An optional new button size. If `NULL`, the existing size is
 #'   unchanged.
+#' @param icon An optional new icon: an icon name or a `carbon_icon()`.
+#'   `FALSE` removes the icon. If `NULL`, the existing icon is unchanged.
 #' @param ... Additional attributes to update on the underlying Carbon button
 #'   element.
 #' @param session The Shiny session object. Defaults to the current reactive
@@ -806,6 +815,7 @@ update_carbon_button <- function(
   label = NULL,
   kind = NULL,
   size = NULL,
+  icon = NULL,
   ...,
   session = shiny::getDefaultReactiveDomain()
 ) {
@@ -823,7 +833,14 @@ update_carbon_button <- function(
     msg$size <- size
   }
 
-  session$sendInputMessage(session$ns(inputId), msg)
+  # Sent as SVG markup (rendered here, like the initial icon) or "" to remove
+  if (isFALSE(icon)) {
+    msg$icon <- ""
+  } else if (!is.null(icon)) {
+    msg$icon <- as.character(.slot_icon(icon))
+  }
+
+  session$sendInputMessage(inputId, msg)
 }
 
 #' Update a Carbon Number Input
@@ -913,5 +930,5 @@ update_carbon_number_input <- function(
     msg$helperText <- helper_text
   }
 
-  session$sendInputMessage(session$ns(inputId), msg)
+  session$sendInputMessage(inputId, msg)
 }

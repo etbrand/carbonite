@@ -9,6 +9,7 @@ update_carbon_button(
   label = NULL,
   kind = NULL,
   size = NULL,
+  icon = NULL,
   ...,
   session = shiny::getDefaultReactiveDomain()
 )
@@ -24,6 +25,9 @@ unchanged.}
 
 \item{size}{An optional new button size. If `NULL`, the existing size is
 unchanged.}
+
+\item{icon}{An optional new icon: an icon name or a `carbon_icon()`.
+`FALSE` removes the icon. If `NULL`, the existing icon is unchanged.}
 
 \item{...}{Additional attributes to update on the underlying Carbon button
 element.}

@@ -23,6 +23,7 @@ test_that("input components attach the carbon dependency", {
 test_that("layout and display components attach the carbon dependency", {
   expect_carbon_dependency(carbon_tag("Label"))
   expect_carbon_dependency(carbon_tile("x"))
+  expect_carbon_dependency(carbon_button("x", "X", icon = "add"))
   expect_carbon_dependency(carbon_tile("x", href = "#"))
   expect_carbon_dependency(carbon_expandable_tile("s", "b"))
   expect_carbon_dependency(carbon_accordion_item("t", "b"))
@@ -34,6 +35,7 @@ test_that("layout and display components attach the carbon dependency", {
   expect_carbon_dependency(carbon_grid())
   expect_carbon_dependency(carbon_column(width = 4))
   expect_carbon_dependency(carbon_table(data.frame(a = 1)))
+  expect_carbon_dependency(carbon_table(data.frame(a = 1), selection = "multiple", toolbar = carbon_table_toolbar()))
   expect_carbon_dependency(carbon_table_output("tbl"))
 })
 

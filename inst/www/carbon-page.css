@@ -49,3 +49,7 @@
 th {
     font-weight: normal !important;
 }
+/* No sidebar: main content gets the full width at every screen size */
+.carbon-app.carbon-app--no-sidebar {
+    grid-template-columns: 1fr;
+}

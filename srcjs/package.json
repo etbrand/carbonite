@@ -43,6 +43,7 @@
     "esbuild@0.28.2": true
   },
   "devDependencies": {
+    "@carbon/icons": "11.89.0",
     "esbuild": "^0.28.2",
     "happy-dom": "^21.0.4",
     "jquery": "^4.0.0",

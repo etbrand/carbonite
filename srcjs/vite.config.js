@@ -1,13 +1,17 @@
 import { defineConfig } from "vite";
-import { copyFileSync, mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // carbonite.scss sets Carbon's `$font-path` to "fonts", so the CSS refers to
-// the IBM Plex fonts as `url(fonts/IBM-Plex-Sans/...)`, relative to the CSS
-// file. Copy exactly those files from @ibm/plex into the build. (Letting Vite
-// resolve the fonts itself would inline all of them as base64: library mode
-// always inlines assets.)
+// the IBM Plex fonts as `url(fonts/IBM-Plex-Sans/fonts/split/woff2/...)`.
+// Copy exactly those files from @ibm/plex into a flat `fonts/` folder and
+// point the CSS at them: the nested paths are too long for an R package
+// (R CMD check: "non-portable file paths", over 100 characters). (Letting
+// Vite resolve the fonts itself would inline all of them as base64: library
+// mode always inlines assets.)
+const FONT_URL = /url\(["']?fonts\/([^"')]+)["']?\)/g;
+
 function copyPlexFonts() {
     const plexDir = fileURLToPath(new URL("node_modules/@ibm/plex/", import.meta.url));
 
@@ -16,22 +20,30 @@ function copyPlexFonts() {
         // writeBundle, not generateBundle: Vite adds the CSS to the bundle
         // after user plugins' generateBundle runs.
         writeBundle(options, bundle) {
-            const css = Object.values(bundle)
+            const cssFiles = Object.values(bundle)
                 .filter(file => file.fileName.endsWith(".css"))
-                .map(file => String(file.source))
-                .join("\n");
-            const paths = new Set(
-                [...css.matchAll(/url\(["']?fonts\/([^"')]+)["']?\)/g)].map(m => m[1])
-            );
+                .map(file => join(options.dir, file.fileName));
+            const flatNames = new Map();
 
-            if (paths.size === 0) {
+            for (const cssFile of cssFiles) {
+                const css = readFileSync(cssFile, "utf8").replace(FONT_URL, (_, path) => {
+                    const name = basename(path);
+                    if (flatNames.has(name) && flatNames.get(name) !== path) {
+                        this.error(`Two fonts would both be copied to fonts/${name}`);
+                    }
+                    flatNames.set(name, path);
+                    return `url(fonts/${name})`;
+                });
+                writeFileSync(cssFile, css);
+            }
+
+            if (flatNames.size === 0) {
                 this.error("No IBM Plex font URLs found in the CSS; check $font-path in carbonite.scss.");
             }
 
-            for (const path of paths) {
-                const dest = join(options.dir, "fonts", path);
-                mkdirSync(dirname(dest), { recursive: true });
-                copyFileSync(plexDir + path, dest);
+            mkdirSync(join(options.dir, "fonts"), { recursive: true });
+            for (const [name, path] of flatNames) {
+                copyFileSync(plexDir + path, join(options.dir, "fonts", name));
             }
         }
     };

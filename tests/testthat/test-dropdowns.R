@@ -45,6 +45,11 @@ test_that("carbon_combobox renders cds-combo-box items", {
   expect_equal(vapply(items, has_attr, logical(1), "selected"), c(TRUE, FALSE))
 })
 
+test_that("carbon_combobox sets its value to the selected choice", {
+  expect_equal(attr_of(carbon_combobox("x", choices = c("a", "b"), selected = "b"), "value"), "b")
+  expect_false(has_attr(carbon_combobox("x", choices = c("a", "b")), "value"))
+})
+
 test_that("dropdown-style inputs validate size", {
   expect_error(carbon_dropdown("x", choices = "a", size = "xl"))
   expect_error(carbon_combobox("x", choices = "a", size = "xl"))

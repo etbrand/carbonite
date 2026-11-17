@@ -1,33 +1,32 @@
 import { updateCarbonAttributes } from "./utils.js";
-import { getAttributes, toSVG } from "@carbon/icon-helpers/es/index.js";
-import { carbonIcons } from "../icons.js";
 
-function setButtonIcon(el) {
-    const iconName = el.dataset.icon;
+// Icons are rendered in R (carbon_icon()) as an <svg slot="icon"> child, so
+// the binding only has to keep it in place.
+function isIcon(node) {
+    return node.nodeType === Node.ELEMENT_NODE && node.getAttribute("slot") === "icon";
+}
 
-    if (!iconName) return;
+// Replace (or with "" remove) the slotted icon with SVG markup from R.
+function setButtonIcon(el, markup) {
+    Array.from(el.childNodes).filter(isIcon).forEach(node => node.remove());
 
-    const icon = carbonIcons[iconName];
+    if (!markup) return;
 
-    if (!icon) {
-        console.warn(`Unknown Carbon icon: "${iconName}"`);
-        return;
+    const template = document.createElement("template");
+    template.innerHTML = markup;
+    const svg = template.content.firstElementChild;
+
+    if (svg) {
+        svg.setAttribute("slot", "icon");
+        el.prepend(svg);
     }
-
-    const svg = toSVG({
-        ...icon,
-        attrs: getAttributes(icon.attrs)
-    });
-
-    svg.setAttribute("slot", "icon");
-    el.appendChild(svg);
 }
 
 // Replace the button's text without removing the slotted icon SVG
 // (setting textContent would wipe every child node, icon included).
 function setButtonLabel(el, label) {
     Array.from(el.childNodes)
-        .filter(node => !(node.nodeType === Node.ELEMENT_NODE && node.getAttribute("slot") === "icon"))
+        .filter(node => !isIcon(node))
         .forEach(node => node.remove());
 
     el.appendChild(document.createTextNode(label));
@@ -39,10 +38,6 @@ $.extend(carbonButtonBinding, {
 
     find(scope) {
         return $(scope).find("cds-button[id]");
-    },
-
-    initialize(el) {
-        setButtonIcon(el);
     },
 
     getValue(el) {
@@ -74,7 +69,11 @@ $.extend(carbonButtonBinding, {
     },
 
     receiveMessage(el, data) {
-        const { label, ...attributes } = data;
+        const { label, icon, ...attributes } = data;
+
+        if (icon !== undefined) {
+            setButtonIcon(el, icon);
+        }
 
         if (label !== undefined) {
             setButtonLabel(el, label);

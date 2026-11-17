@@ -1,10 +1,46 @@
-/* Can later use only needed styles @use "@carbon/styles"; @use "@carbon/themes";*/
-// Fonts are copied next to the CSS by the copy-plex-fonts plugin in
-// vite.config.js; the default `~@ibm/plex` path only works with webpack.
-@use "@carbon/styles" with ($font-path: "fonts");
+// Global Carbon styles. Carbon's web components carry their own styles in
+// their shadow DOM, so this is NOT `@use "@carbon/styles"` (which also
+// compiles every component's class-based CSS, ~1 MB the page never uses).
+// It's the same modules minus `scss/components`:
+//   * config:  fonts are copied next to the CSS by the copy-plex-fonts plugin
+//              in vite.config.js (the default `~@ibm/plex` path is webpack-only)
+//   * reset, fonts, type: page basics and IBM Plex
+//   * grid:    .cds--css-grid / column classes (carbon_grid(), carbon_column())
+//   * layer, layout, zone: token helpers components rely on
+// plus the one component stylesheet used outside a shadow root:
+//   * skeleton-styles: .cds--skeleton__text (carbon_table_output() skeleton)
+// If R code starts using another global `cds--` class, add its component
+// here, e.g. @use "@carbon/styles/scss/components/<name>".
+@use "@carbon/styles/scss/config" with ($font-path: "fonts");
+@use "@carbon/styles/scss/reset";
+@use "@carbon/styles/scss/fonts";
+@use "@carbon/styles/scss/type";
+@use "@carbon/styles/scss/grid";
+@use "@carbon/styles/scss/layer";
+@use "@carbon/styles/scss/layout";
+@use "@carbon/styles/scss/zone";
+@use "@carbon/styles/scss/components/skeleton-styles";
 @use '@carbon/styles/scss/theme' as *;
 @use '@carbon/styles/scss/themes';
 @use '@carbon/grid' as *;
+
+// Component tokens (--cds-button-*, --cds-tag-*, ...). Loading a component's
+// styles normally registers these with the theme; we skip the styles, so
+// register them directly. The web components read them, falling back to
+// white-theme values if they're missing, which would break dark themes.
+// These mirror every `add-component-tokens` call in
+// @carbon/styles/scss/components/*/_index.scss; recheck after updating Carbon.
+@use "@carbon/styles/scss/components/button/tokens" as button-tokens;
+@use "@carbon/styles/scss/components/content-switcher/tokens" as content-switcher-tokens;
+@use "@carbon/styles/scss/components/icon-indicator/tokens" as icon-indicator-tokens;
+@use "@carbon/styles/scss/components/notification/tokens" as notification-tokens;
+@use "@carbon/styles/scss/components/tag/tokens" as tag-tokens;
+
+@include add-component-tokens(button-tokens.$button-tokens);
+@include add-component-tokens(content-switcher-tokens.$content-switcher-tokens);
+@include add-component-tokens(icon-indicator-tokens.$status-tokens);
+@include add-component-tokens(notification-tokens.$notification-tokens);
+@include add-component-tokens(tag-tokens.$tag-tokens);
 
 :root,
 [data-carbon-theme="white"] {

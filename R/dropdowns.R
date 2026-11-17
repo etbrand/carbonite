@@ -133,6 +133,9 @@ carbon_combobox <- function(
         id = inputId,
         `title-text` = label,
         label = placeholder,
+        # Marking the item selected isn't enough: the combo box's value (and
+        # so the Shiny input) comes from this attribute
+        value = selected,
         size = size,
         `helper-text` = helper_text,
         items
@@ -292,7 +295,7 @@ update_carbon_dropdown <- function(
     msg$label <- placeholder
   }
 
-  session$sendInputMessage(session$ns(inputId), msg)
+  session$sendInputMessage(inputId, msg)
 }
 
 #' Update a Carbon Combo Box Input
@@ -369,7 +372,7 @@ update_carbon_combobox <- function(
     msg$label <- placeholder
   }
 
-  session$sendInputMessage(session$ns(inputId), msg)
+  session$sendInputMessage(inputId, msg)
 }
 
 #' Update a Carbon Multiselect Input
@@ -451,5 +454,5 @@ update_carbon_multiselect <- function(
     msg$label <- placeholder
   }
 
-  session$sendInputMessage(session$ns(inputId), msg)
+  session$sendInputMessage(inputId, msg)
 }

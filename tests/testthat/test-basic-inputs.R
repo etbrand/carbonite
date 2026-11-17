@@ -7,7 +7,7 @@ test_that("carbon_button renders a cds-button the binding can find", {
   expect_equal(attr_of(btn, "id"), "go")
   expect_equal(attr_of(btn, "kind"), "primary")
   expect_equal(attr_of(btn, "size"), "md")
-  expect_false(has_attr(btn, "data-icon"))
+  expect_length(find_tags(btn, "svg"), 0)
   expect_match(as.character(btn), ">Go</cds-button>", fixed = TRUE)
 })
 
@@ -17,10 +17,27 @@ test_that("carbon_button passes icon, kind, size and extra attributes", {
     icon = "trash-can", kind = "danger", size = "lg", disabled = NA
   )
 
-  expect_equal(attr_of(btn, "data-icon"), "trash-can")
+  icon <- find_tags(btn, "svg")
+  expect_length(icon, 1)
+  expect_equal(attr_of(icon[[1]], "slot"), "icon")
+  expect_equal(attr_of(icon[[1]], "width"), "16")
   expect_equal(attr_of(btn, "kind"), "danger")
   expect_equal(attr_of(btn, "size"), "lg")
   expect_true(has_attr(btn, "disabled"))
+  expect_match(as.character(btn), "</svg>\\s*Delete\\s*</cds-button>")
+})
+
+test_that("carbon_button accepts any Carbon icon, by name or carbon_icon()", {
+  by_name <- find_tags(carbon_button("x", "X", icon = "chevron--down"), "svg")[[1]]
+  by_tag <- find_tags(carbon_button("x", "X", icon = carbon_icon("chevron--down")), "svg")[[1]]
+
+  expect_equal(attr_of(by_tag, "slot"), "icon")
+  expect_equal(as.character(by_name), as.character(by_tag))
+})
+
+test_that("carbon_button rejects unknown icons in R", {
+  expect_error(carbon_button("x", "X", icon = "trash"), "trash-can")
+  expect_error(carbon_button("x", "X", icon = 1), "icon")
 })
 
 test_that("carbon_button validates kind and size", {

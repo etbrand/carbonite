@@ -1,12 +1,14 @@
 # Minimal stand-in for a Shiny session that records input messages, so we can
 # assert on exactly what `update_carbon_*()` sends to the JS `receiveMessage()`.
+# Like a real module session, `sendInputMessage()` applies `ns` itself, so the
+# recorded id is the one that reaches the browser.
 fake_session <- function(ns = shiny::NS(NULL)) {
   session <- new.env()
   session$ns <- ns
   session$messages <- list()
   session$sendInputMessage <- function(inputId, message) {
     session$messages[[length(session$messages) + 1]] <- list(
-      id = inputId,
+      id = ns(inputId),
       message = message
     )
   }

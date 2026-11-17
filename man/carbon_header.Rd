@@ -4,10 +4,14 @@
 \alias{carbon_header}
 \title{Carbon Design System Header}
 \usage{
-carbon_header(title = "Application")
+carbon_header(title = "Application", menu_button = TRUE)
 }
 \arguments{
 \item{title}{The application name shown in the header.}
+
+\item{menu_button}{Whether to show the menu button that opens the side
+navigation on small screens. \code{carbon_page()} shows it only when
+there is a \code{sidebar}.}
 }
 \value{
 An \code{htmltools::tagList} containing a Carbon header.

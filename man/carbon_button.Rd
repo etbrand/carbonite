@@ -20,8 +20,9 @@ event.}
 
 \item{label}{The button label.}
 
-\item{icon}{Optional name of a Carbon icon shown in the button. Currently
-one of \code{"add"}, \code{"edit"}, or \code{"trash-can"}.}
+\item{icon}{Optional icon shown in the button: the name of any Carbon
+icon (see \code{carbon_icon_names()}), e.g. \code{"add"}, or a
+\code{carbon_icon()}.}
 
 \item{kind}{The Carbon button style. One of \code{"primary"},
 \code{"secondary"}, \code{"tertiary"}, \code{"ghost"},

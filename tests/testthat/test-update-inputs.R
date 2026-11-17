@@ -2,7 +2,9 @@
 # receiveMessage() assigns every key except `id`/`choices` straight onto the
 # element as a property, so keys must be camelCase Carbon property names.
 
-test_that("update functions namespace the input id", {
+test_that("update functions namespace the input id exactly once in a module", {
+  # The module session's sendInputMessage() adds the namespace itself, so
+  # update functions must pass the bare id (not session$ns(id)).
   session <- fake_session(ns = shiny::NS("mod"))
   msg <- capture_input_message(update_carbon_text_input("txt", value = "hi", session = session), session)
 
@@ -82,6 +84,29 @@ test_that("update_carbon_button maps label, kind and size", {
 
   # `label` (not `textContent`) so the binding can keep the icon SVG
   expect_equal(msg$message, list(label = "Stop", kind = "danger", size = "lg"))
+})
+
+test_that("update_carbon_button sends a new icon as slotted SVG markup", {
+  session <- fake_session()
+  msg <- capture_input_message(
+    update_carbon_button("b", icon = "edit", session = session),
+    session
+  )
+
+  expect_named(msg$message, "icon")
+  expect_equal(msg$message$icon, as.character(carbon_icon("edit", slot = "icon")))
+  expect_match(msg$message$icon, '^<svg [^>]*slot="icon"')
+})
+
+test_that("update_carbon_button removes the icon with icon = FALSE", {
+  session <- fake_session()
+  msg <- capture_input_message(update_carbon_button("b", icon = FALSE, session = session), session)
+
+  expect_equal(msg$message, list(icon = ""))
+})
+
+test_that("update_carbon_button validates the icon", {
+  expect_error(update_carbon_button("b", icon = "nope", session = fake_session()), "Unknown")
 })
 
 test_that("update_carbon_checkbox_group can clear the selection", {
@@ -242,4 +267,30 @@ test_that("update functions work inside a module server", {
     session$flushReact()
     expect_equal(session$ns("txt"), "mod-txt")
   }))
+})
+
+# update_carbon_table_selection ------------------------------------------------
+
+test_that("update_carbon_table_selection targets the _selected input", {
+  session <- fake_session()
+  msg <- capture_input_message(
+    update_carbon_table_selection("cars", selected = c(1, 3), session = session),
+    session
+  )
+
+  # Not namespaced here: a module's session already namespaces
+  # sendInputMessage(), as with Shiny's own update*() functions.
+  expect_equal(msg$id, "cars_selected")
+  expect_equal(msg$message, list(selected = c("1", "3")))
+})
+
+test_that("update_carbon_table_selection clears with NULL", {
+  session <- fake_session()
+  msg <- capture_input_message(
+    update_carbon_table_selection("cars", selected = NULL, session = session),
+    session
+  )
+
+  # character(0) is sent as [], which the binding treats as "clear"
+  expect_equal(msg$message, list(selected = character(0)))
 })

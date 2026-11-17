@@ -128,3 +128,91 @@ test_that("rows are numbered in data order", {
     sprintf('data-row-index="%d"', 1:3)
   )
 })
+
+# Header, toolbar and selection ------------------------------------------------
+
+cars <- head(mtcars[, c("mpg", "cyl")], 3)
+
+test_that("title and description go in Carbon's header slots", {
+  html <- render(carbon_table(cars, title = "Cars", description = "From mtcars"))
+
+  expect_match(html, '<cds-table-header-title slot="title">Cars</cds-table-header-title>', fixed = TRUE)
+  expect_match(html, '<cds-table-header-description slot="description">From mtcars</cds-table-header-description>', fixed = TRUE)
+})
+
+test_that("no header or toolbar markup by default", {
+  html <- render(carbon_table(cars))
+
+  expect_false(grepl("cds-table-header-title|cds-table-toolbar|is-selectable|selection-name", html))
+})
+
+test_that("carbon_table_toolbar() renders search, content and batch actions", {
+  html <- render(carbon_table(
+    cars,
+    size = "sm",
+    selection = "multiple",
+    toolbar = carbon_table_toolbar(
+      carbon_button("add", "Add"),
+      search_placeholder = "Find",
+      batch_actions = list(carbon_button("del", "Delete"))
+    )
+  ))
+
+  expect_match(html, '<cds-table-toolbar slot="toolbar" size="sm">', fixed = TRUE)
+  expect_match(html, '<cds-table-batch-actions>\\s*<cds-button[^>]*id="del"')
+  expect_match(html, '<cds-table-toolbar-search persistent placeholder="Find" size="sm"></cds-table-toolbar-search>', fixed = TRUE)
+  expect_match(html, '<cds-table-toolbar-content size="sm">[\\s\\S]*id="add"', perl = TRUE)
+})
+
+test_that("toolbar size maps md/xl to lg and search can be turned off", {
+  html <- render(carbon_table(cars, size = "md", toolbar = carbon_table_toolbar(search = FALSE)))
+
+  expect_match(html, '<cds-table-toolbar slot="toolbar" size="lg">', fixed = TRUE)
+  expect_false(grepl("cds-table-toolbar-search", html, fixed = TRUE))
+  expect_false(grepl("cds-table-batch-actions", html, fixed = TRUE))
+})
+
+test_that("toolbar and batch actions are validated", {
+  expect_error(carbon_table(cars, toolbar = list()), "carbon_table_toolbar")
+  expect_error(carbon_table_toolbar(search = "yes"), "search")
+  expect_error(
+    carbon_table(cars, toolbar = carbon_table_toolbar(batch_actions = list("x"))),
+    "multiple"
+  )
+})
+
+test_that("multiple selection marks the table and keys rows by row number", {
+  html <- render(carbon_table(cars, selection = "multiple", selected = c(1, 3), id = "t"))
+
+  expect_match(html, '<cds-table id="t" size="md" is-selectable class="carbonite-selectable-table" data-row-key-type="index">', fixed = TRUE)
+  expect_false(grepl(" radio", html, fixed = TRUE))
+  expect_match(html, 'data-row-index="1" data-row-key="1" selection-name="1" selected>', fixed = TRUE)
+  expect_match(html, 'data-row-index="2" data-row-key="2" selection-name="2">', fixed = TRUE)
+  expect_match(html, 'data-row-index="3" data-row-key="3" selection-name="3" selected>', fixed = TRUE)
+})
+
+test_that("single selection uses radios and row_key values", {
+  df <- data.frame(id = c("a", "b"), x = 1:2)
+  html <- render(carbon_table(df, selection = "single", row_key = "id", selected = "b"))
+
+  expect_match(html, "is-selectable radio", fixed = TRUE)
+  expect_match(html, 'data-row-key-type="key"', fixed = TRUE)
+  expect_match(html, 'data-row-key="b" selection-name="b" selected>', fixed = TRUE)
+})
+
+test_that("rows always carry their key, even without selection", {
+  html <- render(carbon_table(cars))
+
+  expect_match(html, 'data-row-key="2"', fixed = TRUE)
+  expect_false(grepl("selection-name|data-row-key-type", html))
+})
+
+test_that("selected is validated", {
+  df <- data.frame(id = c("a", "b"), x = 1:2)
+
+  expect_error(carbon_table(cars, selected = 1), "selection")
+  expect_error(carbon_table(cars, selection = "multiple", selected = 9), "Unknown")
+  expect_error(carbon_table(df, selection = "multiple", row_key = "id", selected = 1), "Unknown")
+  expect_error(carbon_table(cars, selection = "single", selected = 1:2), "single row")
+  expect_error(carbon_table(cars, selection = "maybe"))
+})
