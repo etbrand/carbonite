@@ -637,7 +637,7 @@ update_carbon_select <- function(
   }
 
   if (!is.null(choices)) {
-    msg$choices <- .normalize_choices(choices)
+    msg$choices <- .choices_message(choices)
   }
 
   if (!is.null(helper_text)) {
@@ -703,7 +703,7 @@ update_carbon_radio_group <- function(
   }
 
   if (!is.null(choices)) {
-    msg$choices <- .normalize_choices(choices)
+    msg$choices <- .choices_message(choices)
   }
 
   if (!is.null(helper_text)) {
@@ -769,7 +769,7 @@ update_carbon_checkbox_group <- function(
   }
 
   if (!is.null(choices)) {
-    msg$choices <- .normalize_choices(choices)
+    msg$choices <- .choices_message(choices)
   }
 
   if (!is.null(helper_text)) {

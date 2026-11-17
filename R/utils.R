@@ -23,3 +23,10 @@
 print2 <- function(...) {
   cat(file = stderr(), paste0(..., "\n"))
 }
+
+# `choices` for an update_carbon_*() message. A named list, not a named
+# vector: both become a {label: value} JSON object today, but jsonlite warns
+# that named vectors will become arrays in a future version.
+.choices_message <- function(choices) {
+  as.list(.normalize_choices(choices))
+}

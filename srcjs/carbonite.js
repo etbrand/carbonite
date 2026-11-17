@@ -23,6 +23,7 @@ import "@carbon/web-components/es/components/date-picker/index.js";
 import "@carbon/web-components/es/components/notification/index.js";
 import "@carbon/web-components/es/components/pagination/index.js";
 import "@carbon/web-components/es/components/structured-list/index.js";
+import "@carbon/web-components/es/components/password-input/index.js";
 import "@carbon/web-components/es/components/tabs/index.js";
 import "@carbon/web-components/es/components/tag/index.js";
 import "@carbon/web-components/es/components/tile/index.js";

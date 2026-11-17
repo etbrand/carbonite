@@ -1,10 +1,13 @@
 import { updateCarbonAttributes } from "./utils.js";
 
+// Also carbon_password_input() and carbon_textarea(): `cds-password-input`
+// and `cds-textarea` extend Carbon's text input, with the same `value` and
+// native `input` event.
 const carbonTextInputBinding = new Shiny.InputBinding();
 
 $.extend(carbonTextInputBinding, {
     find(scope) {
-        return $(scope).find("cds-text-input[id]");
+        return $(scope).find("cds-text-input[id], cds-password-input[id], cds-textarea[id]");
     },
 
     getValue(el) {

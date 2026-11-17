@@ -91,3 +91,60 @@ describe("carbon.numberInput", () => {
         expect(callback).toHaveBeenCalledTimes(1);
     });
 });
+
+describe("carbon.textInput with a password input", () => {
+    const binding = getBinding("carbon.textInput");
+    const make = () => mount(`<cds-password-input id="pw"></cds-password-input>`);
+
+    it("finds password inputs with an id, alongside text inputs", () => {
+        document.body.innerHTML = `<cds-text-input id="a"></cds-text-input><cds-password-input id="b"></cds-password-input><cds-password-input></cds-password-input>`;
+        expect(binding.find(document.body).toArray().map(el => el.id)).toEqual(["a", "b"]);
+    });
+
+    it("reads the value and notifies Shiny on the native input event", () => {
+        const el = make();
+        const callback = vi.fn();
+        binding.subscribe(el, callback);
+        expect(binding.getValue(el)).toBe("");
+
+        el.value = "s3cret";
+        fire(el, "input");
+
+        expect(binding.getValue(el)).toBe("s3cret");
+        expect(callback).toHaveBeenCalledWith(false);
+    });
+
+    it("can be cleared from update_carbon_password_input()", () => {
+        const el = make();
+        el.value = "s3cret";
+        const callback = vi.fn();
+        binding.subscribe(el, callback);
+
+        binding.receiveMessage(el, { value: "", helperText: "Try again" });
+
+        expect(binding.getValue(el)).toBe("");
+        expect(el.helperText).toBe("Try again");
+        expect(callback).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("carbon.textInput with a text area", () => {
+    const binding = getBinding("carbon.textInput");
+
+    it("finds text areas with an id", () => {
+        document.body.innerHTML = `<cds-textarea id="c"></cds-textarea><cds-textarea></cds-textarea>`;
+        expect(binding.find(document.body).toArray().map(el => el.id)).toEqual(["c"]);
+    });
+
+    it("reads multi-line text and notifies Shiny on input", () => {
+        const el = mount(`<cds-textarea id="c"></cds-textarea>`);
+        const callback = vi.fn();
+        binding.subscribe(el, callback);
+
+        el.value = "line 1\nline 2";
+        fire(el, "input");
+
+        expect(binding.getValue(el)).toBe("line 1\nline 2");
+        expect(callback).toHaveBeenCalledWith(false);
+    });
+});

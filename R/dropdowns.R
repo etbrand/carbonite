@@ -284,7 +284,7 @@ update_carbon_dropdown <- function(
   }
 
   if (!is.null(choices)) {
-    msg$choices <- .normalize_choices(choices)
+    msg$choices <- .choices_message(choices)
   }
 
   if (!is.null(helper_text)) {
@@ -361,7 +361,7 @@ update_carbon_combobox <- function(
   }
 
   if (!is.null(choices)) {
-    msg$choices <- .normalize_choices(choices)
+    msg$choices <- .choices_message(choices)
   }
 
   if (!is.null(helper_text)) {
@@ -443,7 +443,7 @@ update_carbon_multiselect <- function(
   }
 
   if (!is.null(choices)) {
-    msg$choices <- .normalize_choices(choices)
+    msg$choices <- .choices_message(choices)
   }
 
   if (!is.null(helper_text)) {

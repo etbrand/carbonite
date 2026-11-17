@@ -135,7 +135,7 @@ test_that("update_carbon_select maps arguments to properties", {
   expect_equal(msg$message$value, "b")
   expect_equal(msg$message$helperText, "Help")
   # Unnamed choices are named by their values so the JS can use them as labels
-  expect_equal(msg$message$choices, c(a = "a", b = "b"))
+  expect_equal(msg$message$choices, list(a = "a", b = "b"))
 })
 
 test_that("update_carbon_select keeps choice labels", {
@@ -145,7 +145,7 @@ test_that("update_carbon_select keeps choice labels", {
     session
   )
 
-  expect_equal(msg$message$choices, c(Apple = "apple"))
+  expect_equal(msg$message$choices, list(Apple = "apple"))
 })
 
 # update_carbon_radio_group / update_carbon_checkbox_group --------------------
@@ -164,7 +164,7 @@ test_that("update_carbon_radio_group maps arguments to properties", {
     msg$message,
     list(
       legendText = "Size", value = "l",
-      choices = c(Small = "s", Large = "l"), helperText = "Help"
+      choices = list(Small = "s", Large = "l"), helperText = "Help"
     )
   )
 })
@@ -181,7 +181,7 @@ test_that("update_carbon_checkbox_group sends every selected value", {
 
   expect_equal(msg$message$legendText, "Opts")
   expect_equal(msg$message$value, c("a", "c"))
-  expect_equal(msg$message$choices, c(a = "a", b = "b", c = "c"))
+  expect_equal(msg$message$choices, list(a = "a", b = "b", c = "c"))
 })
 
 # Dropdown family -------------------------------------------------------------
@@ -200,7 +200,7 @@ test_that("update_carbon_dropdown and combobox map label and placeholder", {
     expect_equal(
       msg$message,
       list(
-        titleText = "City", value = "a", choices = c(a = "a", b = "b"),
+        titleText = "City", value = "a", choices = list(a = "a", b = "b"),
         helperText = "Help", label = "Choose"
       )
     )
@@ -238,7 +238,7 @@ test_that("update_carbon_multiselect sends a single selected value as-is", {
   expect_equal(
     msg$message,
     list(
-      titleText = "Tags", value = "a", choices = c(a = "a", b = "b"),
+      titleText = "Tags", value = "a", choices = list(a = "a", b = "b"),
       helperText = "Help", label = "Pick"
     )
   )
@@ -293,4 +293,16 @@ test_that("update_carbon_table_selection clears with NULL", {
 
   # character(0) is sent as [], which the binding treats as "clear"
   expect_equal(msg$message, list(selected = character(0)))
+})
+
+test_that("choices are sent without jsonlite's named-vector warning", {
+  session <- fake_session()
+  msg <- capture_input_message(
+    update_carbon_combobox("c", choices = c("USD – US dollar" = "USD", "EUR – Euro" = "EUR"), session = session),
+    session
+  )
+
+  # Same {label: value} object the JS expects, with no deprecation message
+  expect_silent(json <- shiny:::toJSON(msg$message))
+  expect_equal(as.character(json), '{"choices":{"USD – US dollar":"USD","EUR – Euro":"EUR"}}')
 })
