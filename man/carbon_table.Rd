@@ -10,8 +10,13 @@ carbon_table(
   formatters = NULL,
   size = c("md", "xs", "sm", "lg", "xl"),
   sortable = FALSE,
-  selectable = FALSE,
+  selection = c("none", "multiple", "single"),
+  selected = NULL,
   row_key = NULL,
+  title = NULL,
+  description = NULL,
+  toolbar = NULL,
+  id = NULL,
   ...
 )
 }
@@ -36,11 +41,25 @@ date-time, and logical columns sort by their underlying values, and
 factors by level order, regardless of any \code{formatter}. Other
 columns sort by their displayed text. Missing values sort last.}
 
-\item{selectable}{Not yet implemented; currently has no effect.}
+\item{selection}{Row selection: \code{"none"}, \code{"multiple"}
+(checkboxes, plus a select-all checkbox in the header), or
+\code{"single"} (radio buttons). See the Row selection section.}
 
-\item{row_key}{Optional name of a column that uniquely identifies each row.
-Its values must be unique and not missing. Currently it is only
-validated.}
+\item{selected}{Rows selected initially: \code{row_key} values, or row
+numbers if there is no \code{row_key}.}
+
+\item{row_key}{Optional name of a column that uniquely identifies each
+row. Its values must be unique and not missing, and are what the
+selection input reports.}
+
+\item{title, description}{Optional title and description shown above the
+table.}
+
+\item{toolbar}{Optional \code{carbon_table_toolbar()}.}
+
+\item{id}{Optional id for the table. Determines the selection input's
+name. Inside \code{render_carbon_table()} it defaults to the output id;
+in a module, wrap it in \code{ns()}.}
 
 \item{...}{Additional attributes for the underlying \code{cds-table}
 element.}
@@ -52,6 +71,25 @@ An HTML tag representing a Carbon data table.
 Create a Carbon data table from a data frame. Use it directly in the UI,
 or return it from \code{render_carbon_table()}.
 }
+\section{Row selection}{
+
+With \code{selection = "multiple"} or \code{"single"}, each row gets a
+checkbox or radio button and the selected rows are available as
+\code{input$<id>_selected}, where \code{<id>} is the table's \code{id}.
+Inside \code{render_carbon_table()} the id defaults to the output's id, so
+\code{output$cars <- render_carbon_table(...)} gives
+\code{input$cars_selected}.
+
+The value is the selected rows' \code{row_key} values (a character
+vector) if \code{row_key} is set, and otherwise their row numbers in
+\code{data} (unaffected by sorting or filtering in the browser).
+\code{NULL} means nothing is selected. Change the selection from the server
+with \code{update_carbon_table_selection()}.
+
+Re-rendering the table resets the selection to \code{selected}; pass
+\code{selected = shiny::isolate(input$<id>_selected)} to keep it.
+}
+
 \examples{
 carbon_table(head(mtcars[, c("mpg", "cyl", "hp")]))
 
@@ -68,8 +106,21 @@ carbon_table(
   sortable = TRUE
 )
 
+# Title, toolbar with search and batch actions, and row selection
+carbon_table(
+  head(mtcars[, c("mpg", "cyl", "hp")]),
+  title = "Cars",
+  description = "From mtcars",
+  toolbar = carbon_table_toolbar(
+    batch_actions = list(carbon_button("delete", "Delete"))
+  ),
+  selection = "multiple",
+  id = "cars"
+)
+
 }
 \seealso{
 \code{\link{carbon_table_column}},
-  \code{\link{render_carbon_table}}
+  \code{\link{carbon_table_toolbar}}, \code{\link{render_carbon_table}},
+  \code{\link{update_carbon_table_selection}}
 }

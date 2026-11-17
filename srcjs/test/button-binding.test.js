@@ -13,6 +13,12 @@ describe("carbon.button", () => {
         expect(found[0].id).toBe("go");
     });
 
+    it("reports its value as an action, so 0 clicks doesn't trigger observeEvent()", () => {
+        const el = mount(`<cds-button id="go">Go</cds-button>`);
+
+        expect(binding.getType(el)).toBe("shiny.action");
+    });
+
     it("counts clicks like actionButton", () => {
         const el = mount(`<cds-button id="go">Go</cds-button>`);
         const callback = vi.fn();

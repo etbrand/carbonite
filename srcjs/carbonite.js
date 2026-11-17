@@ -33,4 +33,5 @@ import "./bindings/carbon-checkbox-group.js";
 import "./bindings/carbon-select.js";
 import "./bindings/carbon-dropdown.js";
 import "./bindings/carbon-combo-box.js";
+import "./bindings/carbon-table-selection.js";
 import "./bindings/carbon-multi-select.js";

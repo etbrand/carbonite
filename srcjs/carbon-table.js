@@ -26,6 +26,11 @@ export function snapshotTable(container) {
 
     clone.classList.add(SKELETON.slice(1));
     clone.setAttribute("aria-hidden", "true");
+    // The copy may include a toolbar (buttons, search) and selection
+    // checkboxes: keep it out of the tab order and away from Shiny's
+    // selection binding.
+    clone.setAttribute("inert", "");
+    clone.classList.remove("carbonite-selectable-table");
     clone.removeAttribute("id");
     clone.querySelectorAll("[id]").forEach(el => el.removeAttribute("id"));
     clone.querySelectorAll("cds-table-cell").forEach(cell => {

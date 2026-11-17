@@ -91,6 +91,18 @@ describe("snapshotTable", () => {
         expect(skeletonOf(container).id).toBe("");
     });
 
+    it("makes the copy inert and not a selection input", () => {
+        const { container, output } = mountOutput();
+        output.querySelector("cds-table").classList.add("carbonite-selectable-table");
+
+        snapshotTable(container);
+        const skeleton = skeletonOf(container);
+
+        expect(skeleton.hasAttribute("inert")).toBe(true);
+        expect(skeleton.classList.contains("carbonite-selectable-table")).toBe(false);
+        expect(output.querySelector("cds-table").classList.contains("carbonite-selectable-table")).toBe(true);
+    });
+
     it("pins the skeleton's columns to the table's column widths", () => {
         const { output, container } = mountOutput();
         const stubWidth = (el, width) => {

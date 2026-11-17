@@ -1,6 +1,8 @@
+# Keys identify rows for selection: the `row_key` column's values, or row
+# numbers (in data order) when there is no `row_key`.
 get_row_keys <- function(data, row_key) {
   if (is.null(row_key)) {
-    return(paste0("row_", seq_len(nrow(data))))
+    return(as.character(seq_len(nrow(data))))
   }
 
   if (!row_key %in% names(data)) {
@@ -288,7 +290,15 @@ carbon_table_header <- function(columns, size, sort_values) {
   )
 }
 
-carbon_table_body <- function(data, columns, size, sort_values) {
+carbon_table_body <- function(
+  data,
+  columns,
+  size,
+  sort_values,
+  row_keys = as.character(seq_len(nrow(data))),
+  selectable = FALSE,
+  selected = character(0)
+) {
   for (name in names(columns)) {
     formatter <- columns[[name]]$formatter
 
@@ -298,14 +308,24 @@ carbon_table_body <- function(data, columns, size, sort_values) {
   }
 
   # `data-row-index` lets srcjs/table-sort.js restore the original order
-  # when a column's sort is cleared.
+  # when a column's sort is cleared; `data-row-key` is what the selection
+  # binding (srcjs/bindings/carbon-table-selection.js) reports. A
+  # `selection-name` makes Carbon draw the row's checkbox/radio.
   htmltools::tag(
     "cds-table-body",
     lapply(seq_len(nrow(data)), function(i) {
+      key <- row_keys[[i]]
+
       htmltools::tag(
         "cds-table-row",
         c(
-          list(size = size, `data-row-index` = i),
+          list(
+            size = size,
+            `data-row-index` = i,
+            `data-row-key` = key,
+            `selection-name` = if (selectable) key,
+            selected = if (selectable && key %in% selected) NA
+          ),
           lapply(names(columns), function(name) {
             sort_value <- sort_values[[name]][i]
 
@@ -340,10 +360,114 @@ carbon_table_body <- function(data, columns, size, sort_values) {
   # )
 }
 
+
+#' Carbon Table Toolbar
+#'
+#' Define the toolbar shown above a \code{carbon_table()}: an optional search
+#' box that filters the table's rows as the user types, any other controls
+#' (e.g. buttons), and batch actions that appear when rows are selected.
+#'
+#' @param ... Controls shown on the right of the toolbar, e.g.
+#'   \code{carbon_button()}s.
+#' @param search Whether to show a search box. It filters rows in the
+#'   browser, matching any cell's text; the server is not involved.
+#' @param search_placeholder Placeholder text for the search box.
+#' @param batch_actions Optional list of controls (typically
+#'   \code{carbon_button()}s) shown in place of the toolbar while one or more
+#'   rows are selected, alongside a count and a Cancel button. Requires
+#'   \code{selection = "multiple"} in \code{carbon_table()}. Read the
+#'   selected rows from the table's \code{_selected} input in the buttons'
+#'   observers.
+#'
+#' @return A \code{carbon_table_toolbar} object for the \code{toolbar}
+#'   argument of \code{carbon_table()}.
+#'
+#' @seealso \code{\link{carbon_table}}
+#'
+#' @examples
+#' carbon_table_toolbar(
+#'   carbon_button("add", "Add row"),
+#'   batch_actions = list(carbon_button("delete", "Delete"))
+#' )
+#'
+#' @export
+carbon_table_toolbar <- function(
+  ...,
+  search = TRUE,
+  search_placeholder = "Filter table",
+  batch_actions = NULL
+) {
+  if (!rlang::is_bool(search)) {
+    cli::cli_abort("{.arg search} must be {.code TRUE} or {.code FALSE}.")
+  }
+
+  structure(
+    list(
+      content = rlang::list2(...),
+      search = search,
+      search_placeholder = search_placeholder,
+      batch_actions = batch_actions
+    ),
+    class = "carbon_table_toolbar"
+  )
+}
+
+.carbon_table_toolbar_tag <- function(toolbar, size) {
+  # Carbon's toolbar only has xs, sm and lg sizes.
+  toolbar_size <- if (size %in% c("xs", "sm")) size else "lg"
+
+  htmltools::tag(
+    "cds-table-toolbar",
+    list(
+      slot = "toolbar",
+      size = toolbar_size,
+      if (length(toolbar$batch_actions)) {
+        htmltools::tag("cds-table-batch-actions", unname(toolbar$batch_actions))
+      },
+      htmltools::tag(
+        "cds-table-toolbar-content",
+        c(
+          list(size = toolbar_size),
+          list(
+            if (toolbar$search) {
+              htmltools::tag(
+                "cds-table-toolbar-search",
+                list(
+                  persistent = NA,
+                  placeholder = toolbar$search_placeholder,
+                  size = toolbar_size
+                )
+              )
+            }
+          ),
+          toolbar$content
+        )
+      )
+    )
+  )
+}
+
 #' Carbon Data Table
 #'
 #' Create a Carbon data table from a data frame. Use it directly in the UI,
 #' or return it from \code{render_carbon_table()}.
+#'
+#' @section Row selection:
+#' With \code{selection = "multiple"} or \code{"single"}, each row gets a
+#' checkbox or radio button and the selected rows are available as
+#' \code{input$<id>_selected}, where \code{<id>} is the table's \code{id}.
+#' Inside \code{render_carbon_table()} the id defaults to the output's id, so
+#' \code{output$cars <- render_carbon_table(...)} gives
+#' \code{input$cars_selected}.
+#'
+#' The value is the selected rows' \code{row_key} values (a character
+#' vector) if \code{row_key} is set, and otherwise their row numbers in
+#' \code{data} (unaffected by sorting or filtering in the browser).
+#' \code{NULL} means nothing is selected. Change the selection from the server
+#' with \code{update_carbon_table_selection()}.
+#'
+#' Re-rendering the table resets the selection to \code{selected}; pass
+#' \code{selected = shiny::isolate(input$<id>_selected)} to keep it.
 #'
 #' @param data A data frame. Every column is shown, in the data's column
 #'   order.
@@ -360,17 +484,28 @@ carbon_table_body <- function(data, columns, size, sort_values) {
 #'   date-time, and logical columns sort by their underlying values, and
 #'   factors by level order, regardless of any \code{formatter}. Other
 #'   columns sort by their displayed text. Missing values sort last.
-#' @param selectable Not yet implemented; currently has no effect.
-#' @param row_key Optional name of a column that uniquely identifies each row.
-#'   Its values must be unique and not missing. Currently it is only
-#'   validated.
+#' @param selection Row selection: \code{"none"}, \code{"multiple"}
+#'   (checkboxes, plus a select-all checkbox in the header), or
+#'   \code{"single"} (radio buttons). See the Row selection section.
+#' @param selected Rows selected initially: \code{row_key} values, or row
+#'   numbers if there is no \code{row_key}.
+#' @param row_key Optional name of a column that uniquely identifies each
+#'   row. Its values must be unique and not missing, and are what the
+#'   selection input reports.
+#' @param title,description Optional title and description shown above the
+#'   table.
+#' @param toolbar Optional \code{carbon_table_toolbar()}.
+#' @param id Optional id for the table. Determines the selection input's
+#'   name. Inside \code{render_carbon_table()} it defaults to the output id;
+#'   in a module, wrap it in \code{ns()}.
 #' @param ... Additional attributes for the underlying \code{cds-table}
 #'   element.
 #'
 #' @return An HTML tag representing a Carbon data table.
 #'
 #' @seealso \code{\link{carbon_table_column}},
-#'   \code{\link{render_carbon_table}}
+#'   \code{\link{carbon_table_toolbar}}, \code{\link{render_carbon_table}},
+#'   \code{\link{update_carbon_table_selection}}
 #'
 #' @examples
 #' carbon_table(head(mtcars[, c("mpg", "cyl", "hp")]))
@@ -388,6 +523,18 @@ carbon_table_body <- function(data, columns, size, sort_values) {
 #'   sortable = TRUE
 #' )
 #'
+#' # Title, toolbar with search and batch actions, and row selection
+#' carbon_table(
+#'   head(mtcars[, c("mpg", "cyl", "hp")]),
+#'   title = "Cars",
+#'   description = "From mtcars",
+#'   toolbar = carbon_table_toolbar(
+#'     batch_actions = list(carbon_button("delete", "Delete"))
+#'   ),
+#'   selection = "multiple",
+#'   id = "cars"
+#' )
+#'
 #' @export
 carbon_table <- function(
   data,
@@ -395,11 +542,18 @@ carbon_table <- function(
   formatters = NULL,
   size = c("md", "xs", "sm", "lg", "xl"),
   sortable = FALSE,
-  selectable = FALSE,
+  selection = c("none", "multiple", "single"),
+  selected = NULL,
   row_key = NULL,
+  title = NULL,
+  description = NULL,
+  toolbar = NULL,
+  id = NULL,
   ...
 ) {
   size <- match.arg(size)
+  selection <- match.arg(selection)
+  selectable <- selection != "none"
 
   row_keys <- get_row_keys(data, row_key)
   columns <- normalize_columns(data, columns, sortable)
@@ -415,15 +569,47 @@ carbon_table <- function(
     )
   }
 
+  selected <- .check_table_selected(selected, row_keys, selection)
+
+  if (!is.null(toolbar) && !inherits(toolbar, "carbon_table_toolbar")) {
+    cli::cli_abort("{.arg toolbar} must be created with {.fn carbon_table_toolbar}.")
+  }
+  if (
+    !is.null(toolbar) && length(toolbar$batch_actions) && selection != "multiple"
+  ) {
+    cli::cli_abort(
+      "Batch actions need {.code selection = \"multiple\"} in {.fn carbon_table}."
+    )
+  }
+
   data <- data[, column_names, drop = FALSE]
   sort_values <- lapply(data, .sort_values)
 
   .build_carbon_tag(
     "cds-table",
     c(
-      size = size,
+      list(
+        id = id,
+        size = size,
+        `is-selectable` = if (selectable) NA,
+        radio = if (selection == "single") NA,
+        class = if (selectable) "carbonite-selectable-table",
+        `data-row-key-type` = if (selectable) {
+          if (is.null(row_key)) "index" else "key"
+        }
+      ),
       list(...),
       list(
+        if (!is.null(title)) {
+          htmltools::tag("cds-table-header-title", list(slot = "title", title))
+        },
+        if (!is.null(description)) {
+          htmltools::tag(
+            "cds-table-header-description",
+            list(slot = "description", description)
+          )
+        },
+        if (!is.null(toolbar)) .carbon_table_toolbar_tag(toolbar, size),
         carbon_table_header(
           columns = columns,
           size = size,
@@ -433,9 +619,77 @@ carbon_table <- function(
           data = data,
           columns = columns,
           size = size,
-          sort_values = sort_values
+          sort_values = sort_values,
+          row_keys = row_keys,
+          selectable = selectable,
+          selected = selected
         )
       )
     )
   )
+}
+
+.check_table_selected <- function(selected, row_keys, selection) {
+  if (is.null(selected) || !length(selected)) {
+    return(character(0))
+  }
+  if (selection == "none") {
+    cli::cli_abort("{.arg selected} needs {.arg selection} to be {.val multiple} or {.val single}.")
+  }
+
+  selected <- as.character(selected)
+  unknown <- setdiff(selected, row_keys)
+
+  if (length(unknown)) {
+    cli::cli_abort(c(
+      "{.arg selected} must match rows of {.arg data}.",
+      "x" = "Unknown: {.val {unknown}}.",
+      "i" = "Use {.arg row_key} values, or row numbers if there is no {.arg row_key}."
+    ))
+  }
+  if (selection == "single" && length(selected) > 1) {
+    cli::cli_abort("With {.code selection = \"single\"}, {.arg selected} must be a single row.")
+  }
+
+  selected
+}
+
+#' Update a Carbon Table's Selected Rows
+#'
+#' Change which rows of a \code{carbon_table()} are selected, from the
+#' server. The table's \code{_selected} input updates to match.
+#'
+#' @param id The table's id: the \code{id} passed to \code{carbon_table()},
+#'   or the output id when it is rendered with \code{render_carbon_table()}.
+#'   Not the \code{_selected} input name.
+#' @param selected The rows to select: \code{row_key} values, or row numbers
+#'   if the table has no \code{row_key}. \code{NULL} or an empty vector
+#'   clears the selection. Unknown keys are ignored.
+#' @param session The Shiny session object. Defaults to the current reactive
+#'   domain.
+#'
+#' @return Invisibly returns \code{NULL}.
+#'
+#' @seealso \code{\link{carbon_table}}
+#'
+#' @examples
+#' \dontrun{
+#' # Select the first two rows of output$cars
+#' update_carbon_table_selection("cars", selected = 1:2)
+#'
+#' # Clear the selection
+#' update_carbon_table_selection("cars", selected = NULL)
+#' }
+#'
+#' @export
+update_carbon_table_selection <- function(
+  id,
+  selected = NULL,
+  session = shiny::getDefaultReactiveDomain()
+) {
+  session$sendInputMessage(
+    paste0(id, "_selected"),
+    list(selected = as.character(selected))
+  )
+  invisible(NULL)
 }

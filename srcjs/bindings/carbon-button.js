@@ -49,6 +49,13 @@ $.extend(carbonButtonBinding, {
         return Number(el.dataset.clickCount ?? 0);
     },
 
+    // Like shiny::actionButton(): R then treats 0 clicks as "not clicked",
+    // so observeEvent(input$btn, ...) doesn't fire on startup or when the
+    // button is re-rendered (e.g. inside renderUI or a table toolbar).
+    getType() {
+        return "shiny.action";
+    },
+
     subscribe(el, callback) {
         el._carbonClickHandler = () => {
             const value = Number(el.dataset.clickCount ?? 0);
