@@ -216,3 +216,79 @@ test_that("selected is validated", {
   expect_error(carbon_table(cars, selection = "single", selected = 1:2), "single row")
   expect_error(carbon_table(cars, selection = "maybe"))
 })
+
+# Pagination ------------------------------------------------------------------
+
+test_that("without page_size the table isn't wrapped or paginated", {
+  tbl <- carbon_table(data.frame(x = 1:30))
+
+  expect_equal(tbl$name, "cds-table")
+  expect_false(grepl("data-page-hidden|cds-pagination", render(tbl)))
+})
+
+test_that("page_size wraps the table with a pagination bar and hides later rows", {
+  df <- data.frame(x = 1:12)
+  tbl <- carbon_table(df, page_size = 5, id = "t", class = "wide")
+
+  expect_equal(tbl$name, "div")
+  expect_equal(attr_of(tbl, "class"), "carbonite-paginated-table")
+
+  table <- find_tags(tbl, "cds-table")[[1]]
+  expect_equal(attr_of(table, "id"), "t")
+  expect_equal(attr_of(table, "class"), "wide")
+
+  rows <- find_tags(tbl, "cds-table-row")
+  hidden <- vapply(rows, has_attr, logical(1), "data-page-hidden")
+  expect_equal(hidden, rep(c(FALSE, TRUE), c(5, 7)))
+
+  pagination <- find_tags(tbl, "cds-pagination")
+  expect_length(pagination, 1)
+  expect_equal(attr_of(pagination[[1]], "page"), "1")
+  expect_equal(attr_of(pagination[[1]], "page-size"), "5")
+  expect_equal(attr_of(pagination[[1]], "total-items"), "12")
+  expect_equal(attr_of(pagination[[1]], "size"), "md")
+})
+
+test_that("page_sizes become the pagination's options, including page_size", {
+  tbl <- carbon_table(data.frame(x = 1:3), page_size = 15, page_sizes = c(50, 10))
+  items <- find_tags(tbl, "cds-pagination > cds-select-item")
+
+  expect_equal(vapply(items, attr_of, character(1), "value"), c("10", "15", "50"))
+  expect_match(render(items[[2]]), ">15</cds-select-item>", fixed = TRUE)
+})
+
+test_that("the pagination bar follows the table size", {
+  size_of <- function(size) {
+    tbl <- carbon_table(data.frame(x = 1), page_size = 10, size = size)
+    attr_of(find_tags(tbl, "cds-pagination")[[1]], "size")
+  }
+
+  expect_equal(vapply(c("xs", "sm", "md", "lg", "xl"), size_of, character(1)),
+    c(xs = "sm", sm = "sm", md = "md", lg = "lg", xl = "lg"))
+})
+
+test_that("pagination works with selection, a toolbar, and an empty table", {
+  tbl <- carbon_table(
+    data.frame(x = 1:4), page_size = 2, selection = "multiple", selected = 4,
+    toolbar = carbon_table_toolbar()
+  )
+  rows <- find_tags(tbl, "cds-table-row")
+
+  expect_true(has_attr(rows[[4]], "selected"))
+  expect_true(has_attr(rows[[4]], "data-page-hidden"))
+  expect_length(find_tags(tbl, "cds-table-toolbar"), 1)
+
+  empty <- carbon_table(data.frame(x = numeric()), page_size = 10)
+  expect_equal(attr_of(find_tags(empty, "cds-pagination")[[1]], "total-items"), "0")
+})
+
+test_that("page_size and page_sizes are validated", {
+  df <- data.frame(x = 1)
+
+  expect_error(carbon_table(df, page_size = 0), "page_size")
+  expect_error(carbon_table(df, page_size = 2.5), "page_size")
+  expect_error(carbon_table(df, page_size = c(5, 10)), "page_size")
+  expect_error(carbon_table(df, page_size = "10"), "page_size")
+  expect_error(carbon_table(df, page_size = 10, page_sizes = c(5, NA)), "page_sizes")
+  expect_error(carbon_table(df, page_size = 10, page_sizes = numeric()), "page_sizes")
+})

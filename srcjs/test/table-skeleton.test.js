@@ -140,6 +140,35 @@ describe("snapshotTable", () => {
 
         expect(skeletonOf(container)).toBe(before);
     });
+
+    it("copies a paginated table with its pagination bar, minus the selection marker", () => {
+        const { container, output } = mountOutput({ rows: 3 });
+        const table = output.querySelector("cds-table");
+        const wrapper = document.createElement("div");
+        wrapper.className = "carbonite-paginated-table";
+        table.replaceWith(wrapper);
+        table.classList.add("carbonite-selectable-table");
+        table.querySelectorAll("cds-table-row")[2].setAttribute("data-page-hidden", "");
+        wrapper.append(
+            table,
+            Object.assign(document.createElement("span"), { className: "carbonite-table-selection", id: "tbl_selected" }),
+            Object.assign(document.createElement("cds-pagination"), { id: "pg" })
+        );
+
+        snapshotTable(container);
+        const skeleton = skeletonOf(container);
+
+        expect(skeleton.classList.contains("carbonite-paginated-table")).toBe(true);
+        expect(skeleton.hasAttribute("inert")).toBe(true);
+        expect(skeleton.querySelector("cds-pagination")).not.toBeNull();
+        expect(skeleton.querySelector(".carbonite-table-selection")).toBeNull();
+        expect(skeleton.querySelector("cds-table").classList.contains("carbonite-selectable-table")).toBe(false);
+        expect(skeleton.querySelectorAll("[id]")).toHaveLength(0);
+        // Only the current page's rows show in the copy
+        expect(skeleton.querySelectorAll("cds-table-row[data-page-hidden]")).toHaveLength(1);
+        // The live table is untouched
+        expect(output.querySelector(".carbonite-table-selection")).not.toBeNull();
+    });
 });
 
 describe("setTableLoading", () => {

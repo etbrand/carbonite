@@ -89,5 +89,8 @@ document.addEventListener("cds-table-header-cell-sort", event => {
     if (!table || !header.parentElement) return;
 
     const columnIndex = [...header.parentElement.children].indexOf(header);
-    sortTableRows(table, columnIndex, event.detail?.sortDirection);
+    if (sortTableRows(table, columnIndex, event.detail?.sortDirection)) {
+        // Lets table-pagination.js show the current page in the new order.
+        table.dispatchEvent(new CustomEvent("carbonite:table-sorted", { bubbles: true }));
+    }
 });

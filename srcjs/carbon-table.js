@@ -15,22 +15,27 @@ export function setTableLoading(container, loading) {
 }
 
 // Replace the skeleton with a copy of the rendered table whose body cells
-// hold skeleton text, so it matches the table's columns, rows and size.
+// hold skeleton text, so it matches the table's columns, rows and size. A
+// paginated table is copied with its pagination bar (and only the current
+// page's rows show, since the copied rows keep `data-page-hidden`).
 export function snapshotTable(container) {
     const table = container.querySelector(`${OUTPUT} cds-table`);
     const skeleton = container.querySelector(SKELETON);
 
     if (!table || !skeleton) return;
 
-    const clone = table.cloneNode(true);
+    const source = table.closest(".carbonite-paginated-table") ?? table;
+    const clone = source.cloneNode(true);
+    const cloneTable = clone.matches("cds-table") ? clone : clone.querySelector("cds-table");
 
     clone.classList.add(SKELETON.slice(1));
     clone.setAttribute("aria-hidden", "true");
-    // The copy may include a toolbar (buttons, search) and selection
-    // checkboxes: keep it out of the tab order and away from Shiny's
-    // selection binding.
+    // The copy may include a toolbar (buttons, search), pagination, and
+    // selection checkboxes: keep it out of the tab order and away from
+    // Shiny's selection binding.
     clone.setAttribute("inert", "");
-    clone.classList.remove("carbonite-selectable-table");
+    cloneTable.classList.remove("carbonite-selectable-table");
+    clone.querySelectorAll(".carbonite-table-selection").forEach(marker => marker.remove());
     clone.removeAttribute("id");
     clone.querySelectorAll("[id]").forEach(el => el.removeAttribute("id"));
     clone.querySelectorAll("cds-table-cell").forEach(cell => {
@@ -38,7 +43,7 @@ export function snapshotTable(container) {
         text.className = "cds--skeleton__text";
         cell.replaceChildren(text);
     });
-    copyColumnWidths(table, clone);
+    copyColumnWidths(table, cloneTable);
 
     skeleton.replaceWith(clone);
 }

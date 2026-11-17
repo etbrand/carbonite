@@ -90,6 +90,13 @@
     margin: 0;
 }
 
+// carbon_table(page_size = ): rows off the current page, set by
+// srcjs/table-pagination.js. (A document style on the host element beats
+// the row's own :host styles.)
+cds-table-row[data-page-hidden] {
+    display: none;
+}
+
 // Carbon web-components bug: the sort icon svg is 32x32 and Carbon's CSS
 // only shrinks its width (to 1.25rem), so it keeps sortable headers at least
 // 2rem tall -- taller than xs rows (1.5rem). Match the height to the width.

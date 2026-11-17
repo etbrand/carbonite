@@ -16,6 +16,8 @@ carbon_table(
   title = NULL,
   description = NULL,
   toolbar = NULL,
+  page_size = NULL,
+  page_sizes = c(10, 25, 50, 100),
   id = NULL,
   ...
 )
@@ -57,6 +59,13 @@ table.}
 
 \item{toolbar}{Optional \code{carbon_table_toolbar()}.}
 
+\item{page_size}{Optional number of rows per page. \code{NULL} (the
+default) shows every row, without pagination. See the Pagination
+section.}
+
+\item{page_sizes}{The choices of rows per page offered by the pagination
+bar. \code{page_size} is added if it isn't one of them.}
+
 \item{id}{Optional id for the table. Determines the selection input's
 name. Inside \code{render_carbon_table()} it defaults to the output id;
 in a module, wrap it in \code{ns()}.}
@@ -90,6 +99,23 @@ Re-rendering the table resets the selection to \code{selected}; pass
 \code{selected = shiny::isolate(input$<id>_selected)} to keep it.
 }
 
+\section{Pagination}{
+
+With \code{page_size} set, the table shows that many rows at a time, with
+Carbon's pagination bar below it for moving between pages and changing
+the number of rows per page. Paging happens in the browser, like sorting
+and search: every row is sent to the browser, so it suits tables of up to
+a few thousand rows. Searching goes back to the first page and pages
+through the matching rows; sorting keeps the current page.
+
+Selections are kept across pages, and \code{input$<id>_selected} includes
+rows on every page. The header checkbox selects or clears the rows on the
+current page.
+
+A paginated table is returned wrapped in a \code{div} with its pagination
+bar; \code{...} and \code{id} still apply to the \code{cds-table}.
+}
+
 \examples{
 carbon_table(head(mtcars[, c("mpg", "cyl", "hp")]))
 
@@ -117,6 +143,9 @@ carbon_table(
   selection = "multiple",
   id = "cars"
 )
+
+# 10 rows per page
+carbon_table(mtcars, sortable = TRUE, page_size = 10)
 
 }
 \seealso{

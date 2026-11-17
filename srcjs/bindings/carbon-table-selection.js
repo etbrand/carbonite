@@ -27,6 +27,11 @@ function isSelected(row) {
     return typeof row.selected === "boolean" ? row.selected : row.hasAttribute("selected");
 }
 
+// Carbon sets `filtered` as a property and reflects it on its next render.
+export function isFiltered(row) {
+    return typeof row.filtered === "boolean" ? row.filtered : row.hasAttribute("filtered");
+}
+
 function whenRendered(...elements) {
     return Promise.all(elements.map(el => el?.updateComplete ?? Promise.resolve()));
 }
@@ -57,15 +62,18 @@ export function syncCarbonSelection(table) {
         });
     }
 
+    // The header checkbox describes the rows the user can see: those that
+    // match the search and, in a paginated table, are on the current page.
     const headerRow = table.querySelector("cds-table-head cds-table-header-row");
     const headerCheckbox = headerRow?.shadowRoot?.querySelector("cds-checkbox");
     if (headerCheckbox) {
-        const selectable = rows.filter(row =>
-            !row.hasAttribute("filtered") && !row.hasAttribute("disabled")
-        ).length;
-        headerRow.selected = count > 0;
-        headerCheckbox.checked = count > 0;
-        headerCheckbox.indeterminate = count > 0 && count < selectable;
+        const visible = rows.filter(row =>
+            !isFiltered(row) && !row.hasAttribute("disabled") && !row.hasAttribute("data-page-hidden")
+        );
+        const visibleSelected = visible.filter(isSelected).length;
+        headerRow.selected = visibleSelected > 0;
+        headerCheckbox.checked = visibleSelected > 0;
+        headerCheckbox.indeterminate = visibleSelected > 0 && visibleSelected < visible.length;
     }
 
     const batch = table.querySelector("cds-table-batch-actions");

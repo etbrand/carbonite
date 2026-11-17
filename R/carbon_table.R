@@ -297,7 +297,8 @@ carbon_table_body <- function(
   sort_values,
   row_keys = as.character(seq_len(nrow(data))),
   selectable = FALSE,
-  selected = character(0)
+  selected = character(0),
+  page_size = NULL
 ) {
   for (name in names(columns)) {
     formatter <- columns[[name]]$formatter
@@ -311,6 +312,8 @@ carbon_table_body <- function(
   # when a column's sort is cleared; `data-row-key` is what the selection
   # binding (srcjs/bindings/carbon-table-selection.js) reports. A
   # `selection-name` makes Carbon draw the row's checkbox/radio.
+  # `data-page-hidden` hides rows after the first page; srcjs/table-pagination.js
+  # moves it as the user pages.
   htmltools::tag(
     "cds-table-body",
     lapply(seq_len(nrow(data)), function(i) {
@@ -324,7 +327,8 @@ carbon_table_body <- function(
             `data-row-index` = i,
             `data-row-key` = key,
             `selection-name` = if (selectable) key,
-            selected = if (selectable && key %in% selected) NA
+            selected = if (selectable && key %in% selected) NA,
+            `data-page-hidden` = if (!is.null(page_size) && i > page_size) NA
           ),
           lapply(names(columns), function(name) {
             sort_value <- sort_values[[name]][i]
@@ -469,6 +473,21 @@ carbon_table_toolbar <- function(
 #' Re-rendering the table resets the selection to \code{selected}; pass
 #' \code{selected = shiny::isolate(input$<id>_selected)} to keep it.
 #'
+#' @section Pagination:
+#' With \code{page_size} set, the table shows that many rows at a time, with
+#' Carbon's pagination bar below it for moving between pages and changing
+#' the number of rows per page. Paging happens in the browser, like sorting
+#' and search: every row is sent to the browser, so it suits tables of up to
+#' a few thousand rows. Searching goes back to the first page and pages
+#' through the matching rows; sorting keeps the current page.
+#'
+#' Selections are kept across pages, and \code{input$<id>_selected} includes
+#' rows on every page. The header checkbox selects or clears the rows on the
+#' current page.
+#'
+#' A paginated table is returned wrapped in a \code{div} with its pagination
+#' bar; \code{...} and \code{id} still apply to the \code{cds-table}.
+#'
 #' @param data A data frame. Every column is shown, in the data's column
 #'   order.
 #' @param columns Optional named list customising columns, keyed by column
@@ -495,6 +514,11 @@ carbon_table_toolbar <- function(
 #' @param title,description Optional title and description shown above the
 #'   table.
 #' @param toolbar Optional \code{carbon_table_toolbar()}.
+#' @param page_size Optional number of rows per page. \code{NULL} (the
+#'   default) shows every row, without pagination. See the Pagination
+#'   section.
+#' @param page_sizes The choices of rows per page offered by the pagination
+#'   bar. \code{page_size} is added if it isn't one of them.
 #' @param id Optional id for the table. Determines the selection input's
 #'   name. Inside \code{render_carbon_table()} it defaults to the output id;
 #'   in a module, wrap it in \code{ns()}.
@@ -535,6 +559,9 @@ carbon_table_toolbar <- function(
 #'   id = "cars"
 #' )
 #'
+#' # 10 rows per page
+#' carbon_table(mtcars, sortable = TRUE, page_size = 10)
+#'
 #' @export
 carbon_table <- function(
   data,
@@ -548,12 +575,15 @@ carbon_table <- function(
   title = NULL,
   description = NULL,
   toolbar = NULL,
+  page_size = NULL,
+  page_sizes = c(10, 25, 50, 100),
   id = NULL,
   ...
 ) {
   size <- match.arg(size)
   selection <- match.arg(selection)
   selectable <- selection != "none"
+  page_sizes <- .check_page_sizes(page_size, page_sizes)
 
   row_keys <- get_row_keys(data, row_key)
   columns <- normalize_columns(data, columns, sortable)
@@ -585,7 +615,7 @@ carbon_table <- function(
   data <- data[, column_names, drop = FALSE]
   sort_values <- lapply(data, .sort_values)
 
-  .build_carbon_tag(
+  table <- .build_carbon_tag(
     "cds-table",
     c(
       list(
@@ -622,9 +652,55 @@ carbon_table <- function(
           sort_values = sort_values,
           row_keys = row_keys,
           selectable = selectable,
-          selected = selected
+          selected = selected,
+          page_size = page_size
         )
       )
+    )
+  )
+
+  if (is.null(page_size)) {
+    return(table)
+  }
+
+  # srcjs/table-pagination.js finds the table and its pagination through
+  # this wrapper.
+  htmltools::tags$div(
+    class = "carbonite-paginated-table",
+    table,
+    .carbon_table_pagination(nrow(data), page_size, page_sizes, size)
+  )
+}
+
+.check_page_sizes <- function(page_size, page_sizes, call = rlang::caller_env()) {
+  is_count <- function(x) is.numeric(x) && all(!is.na(x) & x >= 1 & x == round(x))
+
+  if (!is.null(page_size) && (length(page_size) != 1 || !is_count(page_size))) {
+    cli::cli_abort("{.arg page_size} must be a single whole number of at least 1, or {.code NULL}.", call = call)
+  }
+  if (!length(page_sizes) || !is_count(page_sizes)) {
+    cli::cli_abort("{.arg page_sizes} must be whole numbers of at least 1.", call = call)
+  }
+
+  sort(unique(c(page_sizes, page_size)))
+}
+
+.carbon_table_pagination <- function(total, page_size, page_sizes, size) {
+  # Carbon's pagination has sm, md and lg sizes.
+  pagination_size <- switch(size, xs = , sm = "sm", md = "md", "lg")
+
+  htmltools::tag(
+    "cds-pagination",
+    c(
+      list(
+        page = 1,
+        `page-size` = page_size,
+        `total-items` = total,
+        size = pagination_size
+      ),
+      lapply(page_sizes, function(n) {
+        htmltools::tag("cds-select-item", list(value = n, n))
+      })
     )
   )
 }
