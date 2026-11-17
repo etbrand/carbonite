@@ -22,6 +22,9 @@ test_that("input components attach the carbon dependency", {
 
 test_that("layout and display components attach the carbon dependency", {
   expect_carbon_dependency(carbon_tag("Label"))
+  expect_carbon_dependency(carbon_tile("x"))
+  expect_carbon_dependency(carbon_tile("x", href = "#"))
+  expect_carbon_dependency(carbon_expandable_tile("s", "b"))
   expect_carbon_dependency(carbon_header())
   expect_carbon_dependency(carbon_sidebar())
   expect_carbon_dependency(carbon_nav_item("home", "Home"))

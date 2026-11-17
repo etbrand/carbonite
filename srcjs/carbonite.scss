@@ -60,3 +60,15 @@
 cds-table-header-cell::part(sort-icon) {
     block-size: 1.25rem;
 }
+
+// In an interactive expandable tile only the chevron toggles it, but Carbon
+// lets the content run underneath the chevron (bottom-right when expanded,
+// top-right when collapsed), so a full-width input can cover it. Keep the
+// chevron's corner clear.
+cds-expandable-tile[with-interactive] > cds-tile-above-the-fold-content {
+    padding-inline-end: 2rem;
+}
+
+cds-expandable-tile[with-interactive] > cds-tile-below-the-fold-content {
+    padding-block-end: 2rem;
+}
