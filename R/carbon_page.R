@@ -137,6 +137,12 @@ carbon_page <- function(
 
   htmltools::tags$html(
     `data-carbon-theme` = theme,
+    # Without a viewport tag, phones lay the page out at desktop width
+    # (~980px) and shrink it to fit, so Carbon's breakpoints never apply.
+    # Shiny moves this into the document's <head>.
+    htmltools::tags$head(
+      htmltools::tags$meta(name = "viewport", content = "width=device-width, initial-scale=1")
+    ),
     carbon_dependency(),
     carbon_page_dependency(),
     htmltools::tags$div(

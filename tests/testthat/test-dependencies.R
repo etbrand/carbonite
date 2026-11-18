@@ -17,3 +17,16 @@ test_that("Bundled JS files actually exist in inst/www", {
     info = "Bundle carbonite.min.js is missing. Run npm run build!"
   )
 })
+
+test_that("every file a dependency loads exists in the installed package", {
+  for (dep in list(carbon_dependency(), carbon_page_dependency())) {
+    files <- c(
+      vapply(dep$script, function(s) if (is.list(s)) s$src else s, character(1)),
+      unlist(dep$stylesheet)
+    )
+    expect_true(length(files) > 0)
+    for (file in files) {
+      expect_true(file.exists(file.path(dep$src$file, file)), label = paste(dep$name, file))
+    }
+  }
+})

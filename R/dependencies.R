@@ -14,8 +14,8 @@ carbon_dependency <- function() {
   )
 }
 
-# TODO: Eventually remove this but make sure carbon_page default_route still works
-
+# The page layout CSS for carbon_page(). Its routing between panels is in the
+# main bundle (srcjs/carbon-page.js).
 carbon_page_dependency <- function() {
   htmltools::htmlDependency(
     name = "carbon-page",
@@ -24,7 +24,6 @@ carbon_page_dependency <- function() {
       "www",
       package = "carbonite"
     ),
-    script = "scratch.js",
     stylesheet = "carbon-page.css"
   )
 }

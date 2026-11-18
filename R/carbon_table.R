@@ -63,6 +63,14 @@ normalize_columns <- function(data, columns, sortable) {
 #'   \code{data}), \code{key} (its \code{row_key} value, or the row number as
 #'   a string) and \code{column} (the column's name). It's an event, so
 #'   clicking the same cell again triggers observers again.
+#' @param action_icon Optional: the name of a Carbon icon (see
+#'   \code{carbon_icon()}). The cell's content then stays plain text, followed
+#'   by an icon-only button that triggers the action, e.g. \code{"popup"} for
+#'   one that opens a modal. Implies \code{action = TRUE};
+#'   \code{input$<id>_cell_click} is the same.
+#' @param action_label With \code{action_icon}: what the button does, e.g.
+#'   \code{"Open profile"}. It's the button's tooltip, and with the cell's
+#'   text, its accessible name ("Open profile: Chad").
 #'
 #' @return A \code{carbon_table_column} object for the \code{columns}
 #'   argument of \code{carbon_table()}.
@@ -77,12 +85,17 @@ normalize_columns <- function(data, columns, sortable) {
 #' # Names that open something when clicked (see input$<id>_cell_click)
 #' carbon_table_column(label = "Name", action = TRUE)
 #'
+#' # Plain names, each followed by a button that opens a modal
+#' carbon_table_column(label = "Name", action_icon = "popup", action_label = "Open details")
+#'
 #' @export
 carbon_table_column <- function(
   label = NULL,
   sortable = NULL,
   formatter = NULL,
-  action = FALSE
+  action = FALSE,
+  action_icon = NULL,
+  action_label = "Open"
 ) {
   if (!is.null(formatter) && !is.function(formatter)) {
     stop("`formatter` must be a function or NULL.", call. = FALSE)
@@ -90,12 +103,21 @@ carbon_table_column <- function(
   if (!rlang::is_bool(action)) {
     cli::cli_abort("{.arg action} must be {.code TRUE} or {.code FALSE}.")
   }
+  if (!is.null(action_icon)) {
+    .check_icon_name(action_icon, arg = "action_icon")
+    if (!rlang::is_string(action_label) || !nzchar(action_label)) {
+      cli::cli_abort("{.arg action_label} must be a single, non-empty string.")
+    }
+    action <- TRUE
+  }
   structure(
     list(
       label = label,
       sortable = sortable,
       formatter = formatter,
-      action = action
+      action = action,
+      action_icon = action_icon,
+      action_label = action_label
     ),
     class = "carbon_table_column"
   )
@@ -369,7 +391,23 @@ carbon_table_body <- function(
             # carbon_table_column(action = TRUE): a button that
             # srcjs/table-cell-action.js reports as input$<id>_cell_click.
             # Same text, so search and text sorting are unaffected.
-            if (isTRUE(columns[[name]]$action)) {
+            column <- columns[[name]]
+            if (isTRUE(column$action) && !is.null(column$action_icon)) {
+              # Plain text, then an icon-only button
+              text <- if (is.character(content) && length(content) == 1 && !is.na(content)) content
+              content <- htmltools::tags$span(
+                class = "carbonite-cell-with-action",
+                htmltools::tags$span(content),
+                htmltools::tags$button(
+                  type = "button",
+                  class = "carbonite-cell-action carbonite-cell-action--icon",
+                  `data-column` = name,
+                  title = column$action_label,
+                  `aria-label` = if (is.null(text)) column$action_label else paste0(column$action_label, ": ", text),
+                  carbon_icon(column$action_icon, size = 16)
+                )
+              )
+            } else if (isTRUE(column$action)) {
               content <- htmltools::tags$button(
                 type = "button",
                 class = "carbonite-cell-action",

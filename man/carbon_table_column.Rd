@@ -8,7 +8,9 @@ carbon_table_column(
   label = NULL,
   sortable = NULL,
   formatter = NULL,
-  action = FALSE
+  action = FALSE,
+  action_icon = NULL,
+  action_label = "Open"
 )
 }
 \arguments{
@@ -28,6 +30,16 @@ output's id), to a list with \code{row} (the row's number in
 \code{data}), \code{key} (its \code{row_key} value, or the row number as
 a string) and \code{column} (the column's name). It's an event, so
 clicking the same cell again triggers observers again.}
+
+\item{action_icon}{Optional: the name of a Carbon icon (see
+\code{carbon_icon()}). The cell's content then stays plain text, followed
+by an icon-only button that triggers the action, e.g. \code{"popup"} for
+one that opens a modal. Implies \code{action = TRUE};
+\code{input$<id>_cell_click} is the same.}
+
+\item{action_label}{With \code{action_icon}: what the button does, e.g.
+\code{"Open profile"}. It's the button's tooltip, and with the cell's
+text, its accessible name ("Open profile: Chad").}
 }
 \value{
 A \code{carbon_table_column} object for the \code{columns}
@@ -45,5 +57,8 @@ carbon_table_column(
 
 # Names that open something when clicked (see input$<id>_cell_click)
 carbon_table_column(label = "Name", action = TRUE)
+
+# Plain names, each followed by a button that opens a modal
+carbon_table_column(label = "Name", action_icon = "popup", action_label = "Open details")
 
 }

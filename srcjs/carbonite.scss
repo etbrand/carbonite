@@ -250,3 +250,40 @@ cds-accordion-item[disabled] > :not([slot]) {
         outline-offset: 2px;
     }
 }
+
+// carbon_table_column(action_icon = ): the cell's text, then an icon-only
+// button, styled like Carbon's ghost icon button at a size that fits even
+// xs rows (1.5rem)
+.carbonite-cell-with-action {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--cds-spacing-03, 0.5rem);
+}
+
+.carbonite-cell-action--icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    // A 1.5rem target that takes up no more height than the cell's text
+    // line (~1.125rem), so rows don't grow: it overlaps the cell's padding
+    margin-block: -0.1875rem;
+    color: var(--cds-icon-secondary, #525252);
+
+    &:hover {
+        background: var(--cds-background-hover, rgba(141, 141, 141, 0.12));
+        color: var(--cds-icon-primary, #161616);
+        text-decoration: none;
+    }
+
+    &:focus {
+        outline: 2px solid var(--cds-focus, #0f62fe);
+        outline-offset: -2px;
+    }
+
+    svg {
+        fill: currentColor;
+    }
+}

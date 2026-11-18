@@ -563,3 +563,39 @@ test_that("action is validated", {
   expect_error(carbon_table_column(action = "yes"), "action")
   expect_false(carbon_table_column()$action)
 })
+
+test_that("action_icon keeps the text plain and adds an icon button", {
+  tbl <- carbon_table(
+    data.frame(name = c("Chad", "Niger"), pop = c(1, 2)),
+    columns = list(name = carbon_table_column(
+      "Name", action_icon = "popup", action_label = "Open profile"
+    ))
+  )
+  html <- as.character(tbl)
+
+  # The text isn't in a button, so it doesn't look like a link
+  expect_match(html, '<span class="carbonite-cell-with-action">\\s*<span>Chad</span>')
+  expect_no_match(html, ">Chad</button>", fixed = TRUE)
+  # One icon button per row, reported like any action cell
+  expect_equal(lengths(regmatches(html, gregexpr("carbonite-cell-action--icon", html))), 2)
+  expect_match(html, 'data-column="name" title="Open profile" aria-label="Open profile: Chad"', fixed = TRUE)
+  expect_match(html, "<svg", fixed = TRUE)
+})
+
+test_that("action_icon implies action, and is validated", {
+  col <- carbon_table_column(action_icon = "popup")
+  expect_true(col$action)
+  expect_equal(col$action_label, "Open")
+
+  expect_error(carbon_table_column(action_icon = "not-an-icon"), "Unknown Carbon icon")
+  expect_error(carbon_table_column(action_icon = "popup", action_label = ""), "action_label")
+})
+
+test_that("an icon button without plain text still has an accessible name", {
+  tbl <- carbon_table(
+    data.frame(name = NA_character_),
+    columns = list(name = carbon_table_column(action_icon = "popup", action_label = "Open"))
+  )
+
+  expect_match(as.character(tbl), 'aria-label="Open"', fixed = TRUE)
+})

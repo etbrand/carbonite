@@ -19,6 +19,17 @@ test_that("carbon_page() with no content renders an empty page", {
   expect_match(render(page), '<main id="carbon-main" class="carbon-main"></main>', fixed = TRUE)
 })
 
+test_that("carbon_page() sets a viewport for phones, in the document head", {
+  rendered <- htmltools::renderTags(carbon_page())
+
+  expect_match(
+    as.character(rendered$head),
+    '<meta name="viewport" content="width=device-width, initial-scale=1"/>',
+    fixed = TRUE
+  )
+  expect_false(grepl("viewport", rendered$html, fixed = TRUE))
+})
+
 test_that("carbon_page() shows non-panel content as is", {
   html <- render(carbon_page(htmltools::h1("Hello"), htmltools::p("World")))
 
