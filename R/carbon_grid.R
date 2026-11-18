@@ -6,8 +6,17 @@
 #' The grid has 4 columns at the \code{sm} breakpoint, 8 at \code{md}, and 16
 #' at \code{lg}, \code{xlg} and \code{max}.
 #'
+#' Carbon's grid has gutters between columns but no space between rows: when
+#' columns wrap onto several rows (e.g. a grid of tiles), the rows touch.
+#' \code{row_gap} adds space between them, typically the same as the column
+#' gutter (\code{row_gap = 7}, i.e. 2rem, on wide screens).
+#'
 #' @param ... \code{carbon_column()} elements and any additional attributes
 #'   for the grid \code{div}.
+#' @param row_gap Space between rows, as a step of Carbon's spacing scale:
+#'   a whole number from 1 to 13, for \code{--cds-spacing-01} (0.125rem) to
+#'   \code{--cds-spacing-13} (10rem), e.g. \code{5} for 1rem or \code{7} for
+#'   2rem. \code{NULL} (the default) for none, as in Carbon.
 #'
 #' @return A \code{div} tag with the Carbon grid class.
 #'
@@ -19,9 +28,42 @@
 #'   carbon_column(width = c(sm = 4, md = 8, lg = 8), htmltools::p("Sidebar"))
 #' )
 #'
+#' # Tiles in rows of two, with the same 2rem gap between rows as between
+#' # columns
+#' carbon_grid(
+#'   row_gap = 7,
+#'   carbon_column(width = 8, carbon_tile("One")),
+#'   carbon_column(width = 8, carbon_tile("Two")),
+#'   carbon_column(width = 8, carbon_tile("Three"))
+#' )
+#'
 #' @export
-carbon_grid <- function(...) {
-  .with_carbon_dependency(htmltools::tags$div(class = "cds--css-grid", ...))
+carbon_grid <- function(..., row_gap = NULL) {
+  style <- if (!is.null(row_gap)) {
+    sprintf("row-gap: %s;", .spacing_token(row_gap, arg = "row_gap"))
+  }
+  .with_carbon_dependency(htmltools::tags$div(class = "cds--css-grid", style = style, ...))
+}
+
+# The CSS for step `step` (1-13) of Carbon's spacing scale, with its value as
+# a fallback, e.g. 7 -> "var(--cds-spacing-07, 2rem)"
+.spacing_token <- function(step, arg = "step", call = rlang::caller_env()) {
+  scale <- c(
+    "0.125rem", "0.25rem", "0.5rem", "0.75rem", "1rem", "1.5rem", "2rem",
+    "2.5rem", "3rem", "4rem", "5rem", "6rem", "10rem"
+  )
+  valid <- is.numeric(step) && length(step) == 1 && !is.na(step) &&
+    step == round(step) && step >= 1 && step <= length(scale)
+  if (!valid) {
+    cli::cli_abort(
+      c(
+        "{.arg {arg}} must be a step of Carbon's spacing scale: a whole number from 1 to 13.",
+        "i" = "For example, {.code {arg} = 5} is 1rem and {.code {arg} = 7} is 2rem."
+      ),
+      call = call
+    )
+  }
+  sprintf("var(--cds-spacing-%02d, %s)", as.integer(step), scale[[step]])
 }
 
 normalize_col_width <- function(width) {

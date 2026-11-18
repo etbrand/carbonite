@@ -55,6 +55,14 @@ normalize_columns <- function(data, columns, sortable) {
 #'   the table's \code{sortable} setting.
 #' @param formatter Optional function applied to the column's values before
 #'   display, e.g. \code{function(x) scales::dollar(x)}.
+#' @param action If \code{TRUE}, each cell's content is a link-styled button,
+#'   e.g. to open a row's details in a modal. Clicking one (or pressing
+#'   \kbd{Enter} on it) sets \code{input$<id>_cell_click}, where \code{<id>}
+#'   is the table's \code{id} (inside \code{render_carbon_table()}, the
+#'   output's id), to a list with \code{row} (the row's number in
+#'   \code{data}), \code{key} (its \code{row_key} value, or the row number as
+#'   a string) and \code{column} (the column's name). It's an event, so
+#'   clicking the same cell again triggers observers again.
 #'
 #' @return A \code{carbon_table_column} object for the \code{columns}
 #'   argument of \code{carbon_table()}.
@@ -66,20 +74,28 @@ normalize_columns <- function(data, columns, sortable) {
 #'   formatter = function(x) sprintf("$%.2f", x)
 #' )
 #'
+#' # Names that open something when clicked (see input$<id>_cell_click)
+#' carbon_table_column(label = "Name", action = TRUE)
+#'
 #' @export
 carbon_table_column <- function(
   label = NULL,
   sortable = NULL,
-  formatter = NULL
+  formatter = NULL,
+  action = FALSE
 ) {
   if (!is.null(formatter) && !is.function(formatter)) {
     stop("`formatter` must be a function or NULL.", call. = FALSE)
+  }
+  if (!rlang::is_bool(action)) {
+    cli::cli_abort("{.arg action} must be {.code TRUE} or {.code FALSE}.")
   }
   structure(
     list(
       label = label,
       sortable = sortable,
-      formatter = formatter
+      formatter = formatter,
+      action = action
     ),
     class = "carbon_table_column"
   )
@@ -348,11 +364,24 @@ carbon_table_body <- function(
           ),
           lapply(names(columns), function(name) {
             sort_value <- sort_values[[name]][i]
+            content <- data[[name]][i]
+
+            # carbon_table_column(action = TRUE): a button that
+            # srcjs/table-cell-action.js reports as input$<id>_cell_click.
+            # Same text, so search and text sorting are unaffected.
+            if (isTRUE(columns[[name]]$action)) {
+              content <- htmltools::tags$button(
+                type = "button",
+                class = "carbonite-cell-action",
+                `data-column` = name,
+                content
+              )
+            }
 
             htmltools::tag(
               "cds-table-cell",
               list(
-                data[[name]][i],
+                content,
                 `data-sort-value` = if (!is.null(sort_value) && !is.na(sort_value)) {
                   sort_value
                 }

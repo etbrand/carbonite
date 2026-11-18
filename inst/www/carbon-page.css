@@ -1,4 +1,6 @@
-/* Eventually replace with Carbon spacing tokens? Eventually move to compiled CSS */
+/* Page layout for carbon_page(). Spacing uses Carbon's spacing tokens
+   (--cds-spacing-*, defined by carbonite.min.css), with their values as
+   fallbacks. Eventually move to compiled CSS. */
 
 .carbon-panel {
     display: none;
@@ -13,10 +15,15 @@
     min-height: calc(100vh - 3rem);
 }
 
+/* Content starts spacing-07 (2rem) below the fixed 3rem header and ends
+   spacing-07 above the bottom, as in Carbon's UI shell. The sides stay at
+   spacing-05: carbon_grid() adds its own margin and gutters on top, and
+   content outside a grid still gets some room. */
 .carbon-main {
-    padding-top: 4rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-top: calc(3rem + var(--cds-spacing-07, 2rem));
+    padding-bottom: var(--cds-spacing-07, 2rem);
+    padding-left: var(--cds-spacing-05, 1rem);
+    padding-right: var(--cds-spacing-05, 1rem);
     min-width: 0;
     overflow: auto;
 }
@@ -46,9 +53,6 @@
     }
 }
 
-th {
-    font-weight: normal !important;
-}
 /* No sidebar: main content gets the full width at every screen size */
 .carbon-app.carbon-app--no-sidebar {
     grid-template-columns: 1fr;

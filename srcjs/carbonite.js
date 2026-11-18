@@ -37,6 +37,7 @@ import "./carbon-page.js";
 import "./carbon-table.js";
 import "./table-expand.js";
 import "./table-lazy-details.js";
+import "./table-cell-action.js";
 import "./table-sort.js";
 import "./table-pagination.js";
 import "./expandable-tile.js";

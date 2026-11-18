@@ -4,7 +4,12 @@
 \alias{carbon_table_column}
 \title{Carbon Table Column Definition}
 \usage{
-carbon_table_column(label = NULL, sortable = NULL, formatter = NULL)
+carbon_table_column(
+  label = NULL,
+  sortable = NULL,
+  formatter = NULL,
+  action = FALSE
+)
 }
 \arguments{
 \item{label}{The column header text. Defaults to the column name.}
@@ -14,6 +19,15 @@ the table's \code{sortable} setting.}
 
 \item{formatter}{Optional function applied to the column's values before
 display, e.g. \code{function(x) scales::dollar(x)}.}
+
+\item{action}{If \code{TRUE}, each cell's content is a link-styled button,
+e.g. to open a row's details in a modal. Clicking one (or pressing
+\kbd{Enter} on it) sets \code{input$<id>_cell_click}, where \code{<id>}
+is the table's \code{id} (inside \code{render_carbon_table()}, the
+output's id), to a list with \code{row} (the row's number in
+\code{data}), \code{key} (its \code{row_key} value, or the row number as
+a string) and \code{column} (the column's name). It's an event, so
+clicking the same cell again triggers observers again.}
 }
 \value{
 A \code{carbon_table_column} object for the \code{columns}
@@ -28,5 +42,8 @@ carbon_table_column(
   sortable = TRUE,
   formatter = function(x) sprintf("$\%.2f", x)
 )
+
+# Names that open something when clicked (see input$<id>_cell_click)
+carbon_table_column(label = "Name", action = TRUE)
 
 }

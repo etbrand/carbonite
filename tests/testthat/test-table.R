@@ -534,3 +534,32 @@ test_that("a row_details function with a second argument gets the row number", {
   .send_lazy_details(session, "tbl", lazy, list(token = lazy$token, rows = list(2)))
   expect_match(session$messages[[1]]$message$details[[1]]$html, "second", fixed = TRUE)
 })
+
+# Clickable cells ---------------------------------------------------------------
+
+test_that("action columns render their cells as buttons, other columns don't", {
+  tbl <- carbon_table(
+    data.frame(name = c("Chad", "Niger"), pop = c(1, 2)),
+    columns = list(name = carbon_table_column("Name", action = TRUE))
+  )
+  html <- as.character(tbl)
+
+  expect_match(html, '<button type="button" class="carbonite-cell-action" data-column="name">Chad</button>', fixed = TRUE)
+  expect_equal(lengths(regmatches(html, gregexpr("carbonite-cell-action", html))), 2)
+  # Other columns unchanged: plain text
+  expect_match(html, 'data-sort-value="1">1</cds-table-cell>', fixed = TRUE)
+})
+
+test_that("action buttons wrap formatted content", {
+  tbl <- carbon_table(
+    data.frame(name = "Chad"),
+    columns = list(name = carbon_table_column(action = TRUE, formatter = toupper))
+  )
+
+  expect_match(as.character(tbl), 'data-column="name">CHAD</button>', fixed = TRUE)
+})
+
+test_that("action is validated", {
+  expect_error(carbon_table_column(action = "yes"), "action")
+  expect_false(carbon_table_column()$action)
+})

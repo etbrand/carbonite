@@ -4,11 +4,16 @@
 \alias{carbon_grid}
 \title{Carbon CSS Grid}
 \usage{
-carbon_grid(...)
+carbon_grid(..., row_gap = NULL)
 }
 \arguments{
 \item{...}{\code{carbon_column()} elements and any additional attributes
 for the grid \code{div}.}
+
+\item{row_gap}{Space between rows, as a step of Carbon's spacing scale:
+a whole number from 1 to 13, for \code{--cds-spacing-01} (0.125rem) to
+\code{--cds-spacing-13} (10rem), e.g. \code{5} for 1rem or \code{7} for
+2rem. \code{NULL} (the default) for none, as in Carbon.}
 }
 \value{
 A \code{div} tag with the Carbon grid class.
@@ -20,11 +25,25 @@ inside it.
 \details{
 The grid has 4 columns at the \code{sm} breakpoint, 8 at \code{md}, and 16
 at \code{lg}, \code{xlg} and \code{max}.
+
+Carbon's grid has gutters between columns but no space between rows: when
+columns wrap onto several rows (e.g. a grid of tiles), the rows touch.
+\code{row_gap} adds space between them, typically the same as the column
+gutter (\code{row_gap = 7}, i.e. 2rem, on wide screens).
 }
 \examples{
 carbon_grid(
   carbon_column(width = 8, htmltools::p("Main content")),
   carbon_column(width = c(sm = 4, md = 8, lg = 8), htmltools::p("Sidebar"))
+)
+
+# Tiles in rows of two, with the same 2rem gap between rows as between
+# columns
+carbon_grid(
+  row_gap = 7,
+  carbon_column(width = 8, carbon_tile("One")),
+  carbon_column(width = 8, carbon_tile("Two")),
+  carbon_column(width = 8, carbon_tile("Three"))
 )
 
 }

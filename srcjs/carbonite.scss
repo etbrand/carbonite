@@ -65,6 +65,14 @@
     }
 }
 
+// Carbon's type utility classes: .cds--type-<token> (e.g.
+// .cds--type-heading-03, .cds--type-body-01, .cds--type-helper-text-01) sets
+// an element's font size, weight, line height and letter spacing from one
+// type token; .cds--type-light/-regular/-semibold and .cds--type-mono/-sans
+// set just the weight or family. Apps use these instead of hand-copying
+// token values.
+@include type.type-classes;
+
 // carbon_table_output(): toggled by srcjs/carbon-table.js.
 // While loading, the output is hidden but keeps a size (not `display: none`)
 // so Shiny doesn't treat it as hidden and suspend it.
@@ -201,9 +209,12 @@ cds-accordion-item[disabled] > :not([slot]) {
 }
 
 // carbon_header(content = ) / carbon_page(header_content = ): UI on the right
-// of the 3rem header, vertically centred.
+// of the 3rem header, vertically centred. Only as wide as its content:
+// Carbon's .cds--header__global grows to fill the header (flex: 1 1 0%),
+// which would stretch a select across it.
 .carbonite-header-content {
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     gap: 0.5rem;
     margin-inline-start: auto;
@@ -214,5 +225,28 @@ cds-accordion-item[disabled] > :not([slot]) {
     .cds--form-item,
     cds-select {
         margin: 0;
+    }
+}
+
+// carbon_table_column(action = TRUE): cell content as a link-styled button
+// (see srcjs/table-cell-action.js). Carbon's link colours and focus ring.
+.carbonite-cell-action {
+    padding: 0;
+    border: 0;
+    margin: 0;
+    background: none;
+    color: var(--cds-link-primary, #0f62fe);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+
+    &:hover {
+        color: var(--cds-link-primary-hover, #0043ce);
+        text-decoration: underline;
+    }
+
+    &:focus {
+        outline: 1px solid var(--cds-focus, #0f62fe);
+        outline-offset: 2px;
     }
 }
