@@ -50,3 +50,15 @@ test_that("page content is spaced with Carbon tokens", {
   # carbonite doesn't restyle the app's own tables
   expect_no_match(css, "(^|\\n|\\})\\s*th\\s*\\{")
 })
+
+test_that("the page stays hidden until Carbon's elements have rendered, with a fallback", {
+  css <- css_file("carbon-page.css")
+
+  # srcjs/carbon-page.js adds .carbon-ready to <html>
+  expect_match(css, "html:not(.carbon-ready) .carbon-app {\n    visibility: hidden;", fixed = TRUE)
+  # Shown after 2s even if that never happens
+  expect_match(css, "animation: carbon-app-show 0s 2s forwards;", fixed = TRUE)
+  expect_match(css, "@keyframes carbon-app-show {\n    to {\n        visibility: visible;", fixed = TRUE)
+  # No fade for people who prefer less motion
+  expect_match(css, "@media (prefers-reduced-motion: reduce)", fixed = TRUE)
+})

@@ -15,6 +15,40 @@
     min-height: calc(100vh - 3rem);
 }
 
+/* Hidden until Carbon's elements have rendered, so the page doesn't flash
+   unstyled while the deferred bundle loads: srcjs/carbon-page.js then adds
+   .carbon-ready to <html>. `visibility` (not `display`) so the layout is
+   already worked out when it shows. If .carbon-ready never comes (a script
+   error, an element that's never defined), the animation shows the page
+   after 2s anyway. */
+html:not(.carbon-ready) .carbon-app {
+    visibility: hidden;
+    animation: carbon-app-show 0s 2s forwards;
+}
+
+@keyframes carbon-app-show {
+    to {
+        visibility: visible;
+    }
+}
+
+/* A quick fade in: Carbon's fast-02 duration with productive easing */
+.carbon-ready .carbon-app {
+    animation: carbon-app-fade-in 110ms cubic-bezier(0.2, 0, 0.38, 0.9);
+}
+
+@keyframes carbon-app-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .carbon-ready .carbon-app {
+        animation: none;
+    }
+}
+
 /* Content starts spacing-07 (2rem) below the fixed 3rem header and ends
    spacing-07 above the bottom, as in Carbon's UI shell. The sides stay at
    spacing-05: carbon_grid() adds its own margin and gutters on top, and

@@ -151,3 +151,74 @@ describe("carbon_page nav links", () => {
         scrollTo.mockRestore();
     });
 });
+
+describe("carbon_page reveal", () => {
+    const root = document.documentElement;
+    const nextFrame = () => Promise.resolve();
+    afterEach(() => root.classList.remove("carbon-ready"));
+
+    const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+
+    // Carbon elements, which (being plain elements here) are given a
+    // pending first render like Lit's updateComplete; returns its resolvers
+    function mountRendering(names) {
+        document.body.innerHTML = `
+            <div id="carbon-app">
+                ${names.map(n => `<${n}></${n}>`).join("")}
+                <cds-tab-panel></cds-tab-panel><div class="plain"></div>
+            </div>`;
+        return names.map((name, i) => {
+            let finish, fail;
+            document.querySelectorAll("#carbon-app > *")[i].updateComplete =
+                new Promise((resolve, reject) => { finish = resolve; fail = reject; });
+            return { finish, fail };
+        });
+    }
+
+    it("shows the page once every Carbon element in it has rendered", async () => {
+        const [header, tabs] = mountRendering(["cds-header", "cds-tabs"]);
+        const done = page.revealWhenReady({ nextFrame });
+
+        header.finish(true);
+        await settle();
+        expect(root.classList.contains("carbon-ready")).toBe(false);
+
+        tabs.finish(true);
+        await done;
+        expect(root.classList.contains("carbon-ready")).toBe(true);
+    });
+
+    it("doesn't wait for cds-* tags that are never defined, or for plain elements", async () => {
+        // Only cds-tab-panel and a div: nothing to wait for
+        mountRendering([]);
+        await page.revealWhenReady({ nextFrame });
+        expect(root.classList.contains("carbon-ready")).toBe(true);
+    });
+
+    it("waits a frame after rendering, for the browser to lay it out", async () => {
+        const [header] = mountRendering(["cds-header"]);
+        let frame;
+        const done = page.revealWhenReady({ nextFrame: () => new Promise(resolve => { frame = resolve; }) });
+
+        header.finish(true);
+        await settle();
+        expect(root.classList.contains("carbon-ready")).toBe(false);
+        frame();
+        await done;
+        expect(root.classList.contains("carbon-ready")).toBe(true);
+    });
+
+    it("still shows the page if an element fails to render", async () => {
+        const [header] = mountRendering(["cds-header"]);
+        const done = page.revealWhenReady({ nextFrame });
+        header.fail(new Error("render failed"));
+        await done;
+        expect(root.classList.contains("carbon-ready")).toBe(true);
+    });
+
+    it("does nothing on pages that aren't a carbon_page()", async () => {
+        document.body.innerHTML = `<cds-tabs></cds-tabs>`;
+        await page.revealWhenReady({ nextFrame });
+        expect(root.classList.contains("carbon-ready")).toBe(false);
+    });
+});

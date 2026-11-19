@@ -55,8 +55,38 @@ function scrollToTop() {
     window.scrollTo(0, 0);
 }
 
+// Carbon's elements only get their layout once this bundle defines them,
+// which is after the browser's first paint (the bundle is deferred), so the
+// page would flash unstyled: the header select's options as a run of text,
+// the nav links in a row, the content squeezed to the left. carbon-page.css
+// keeps .carbon-app invisible until <html> has .carbon-ready, so reveal it
+// once the Carbon elements in the app have rendered.
+//
+// This runs on DOMContentLoaded, when the deferred bundle has defined
+// every element it's going to, so it waits for those elements' first
+// render (Lit's updateComplete), then a frame for the browser to lay them
+// out. A cds-* tag that's never defined (e.g. a plain cds-tab-panel) has no
+// updateComplete and isn't waited for. If this never finishes, the CSS
+// shows the page after 2s anyway. `nextFrame` is for tests.
+export function revealWhenReady({
+    nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve)),
+} = {}) {
+    const root = app();
+    if (!root) return Promise.resolve();
+
+    const rendering = [...root.querySelectorAll("*")]
+        .filter(el => el.localName.startsWith("cds-") && el.updateComplete)
+        .map(el => el.updateComplete);
+    // allSettled: an element whose render failed shouldn't keep the page
+    // hidden
+    return Promise.allSettled(rendering)
+        .then(nextFrame)
+        .then(() => document.documentElement.classList.add("carbon-ready"));
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     navigate(getCurrentRoute());
+    revealWhenReady();
 });
 
 // Opening a link like /#about: undo the browser's jump to the panel

@@ -19,7 +19,9 @@ carbon_dependency <- function() {
 carbon_page_dependency <- function() {
   htmltools::htmlDependency(
     name = "carbon-page",
-    version = "0.0.1",
+    # Part of the URL: bump when carbon-page.css changes, so browsers don't
+    # keep a cached copy
+    version = "0.0.2",
     src = system.file(
       "www",
       package = "carbonite"
