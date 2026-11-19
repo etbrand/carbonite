@@ -54,7 +54,8 @@ slider. While a handle is dragged, the value reaches the server at most
 every 250 milliseconds.
 
 Next to the slider is a number box for typing the value; hide it with
-\code{hide_text_input = TRUE}.
+\code{hide_text_input = TRUE}. The slider fits narrow columns: its track
+shrinks, and its number boxes are hidden while there isn't room for them.
 }
 \examples{
 carbon_slider("bins", "Number of bins", min = 1, max = 50, value = 30)

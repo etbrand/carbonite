@@ -5,5 +5,7 @@
 ^\.Rprofile$
 ^\.vscode$
 ^\.claude$
+^\.github$
 ^CLAUDE\.md$
 ^LICENSE\.md$
+^cran-comments\.md$

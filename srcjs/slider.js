@@ -59,10 +59,89 @@ export function moveRangeHandle(slider, upper, rate) {
     return slider.value;
 }
 
+// Carbon gives the slider's track `min-inline-size: 12.5rem`, so with its
+// end labels (and number boxes) a slider is at least ~300px wide and
+// overflows a narrower column, onto whatever is next to it. Let the track
+// shrink to 4rem, still wide enough to drag. The rule is inside the shadow
+// root, so it's added there.
+let narrowSheet = null;
+
+export function allowNarrow(slider) {
+    const root = slider.shadowRoot;
+    if (!root || !("adoptedStyleSheets" in root) || typeof CSSStyleSheet !== "function") return;
+
+    if (!narrowSheet) {
+        narrowSheet = new CSSStyleSheet();
+        narrowSheet.replaceSync(".cds--slider{min-inline-size:4rem}");
+    }
+    if (!root.adoptedStyleSheets.includes(narrowSheet)) {
+        root.adoptedStyleSheets = [...root.adoptedStyleSheets, narrowSheet];
+    }
+}
+
+// Even with a narrow track, a slider's number boxes (4rem each) don't fit a
+// very narrow column. Hide them while the slider's contents overflow, and
+// show them again once it's as wide as they needed. Sliders whose boxes the
+// app hid (hide_text_input = TRUE) are left alone.
+export function fitNumberBoxes(slider) {
+    const container = slider.shadowRoot?.querySelector(".cds--slider-container");
+    if (!container) return;
+
+    // The container's width, not the host's: `cds-slider` is inline, so its
+    // own clientWidth is 0.
+    if (slider._carboniteHidBoxes) {
+        if (container.clientWidth >= slider._carboniteNeededWidth) {
+            slider._carboniteHidBoxes = false;
+            slider.hideTextInput = false;
+        }
+        return;
+    }
+
+    if (!slider.hideTextInput && container.scrollWidth > container.clientWidth + 1) {
+        slider._carboniteNeededWidth = container.scrollWidth;
+        slider._carboniteHidBoxes = true;
+        slider.hideTextInput = true;
+    }
+}
+
+let resizeObserver = null;
+
+// Observe the slider's container in its shadow root: `cds-slider` itself is
+// inline, and a ResizeObserver doesn't report inline elements resizing. The
+// container exists once Carbon has rendered.
+function watchWidth(slider) {
+    if (typeof ResizeObserver !== "function") return;
+    resizeObserver ??= new ResizeObserver(entries => entries.forEach(entry => {
+        const host = entry.target.getRootNode().host;
+        if (host) fitNumberBoxes(host);
+    }));
+
+    const observe = () => {
+        const container = slider.shadowRoot?.querySelector(".cds--slider-container");
+        if (container) resizeObserver.observe(container);
+    };
+    if (slider.updateComplete?.then) slider.updateComplete.then(observe);
+    else observe();
+}
+
 export function patchSlider(Slider) {
     if (Slider.prototype._carbonitePatched) return;
 
-    const { _handlePointermoveImpl: pointermove, _handleClick: click } = Slider.prototype;
+    const {
+        _handlePointermoveImpl: pointermove,
+        _handleClick: click,
+        createRenderRoot
+    } = Slider.prototype;
+
+    // Lit creates the shadow root (and adopts Carbon's styles) here
+    if (typeof createRenderRoot === "function") {
+        Slider.prototype.createRenderRoot = function (...args) {
+            const root = createRenderRoot.apply(this, args);
+            allowNarrow(this);
+            watchWidth(this);
+            return root;
+        };
+    }
 
     Slider.prototype._handlePointermoveImpl = function (event) {
         if (!isRangeSlider(this) || this.disabled || !(this._dragging || this._draggingUpper)) {
@@ -96,10 +175,14 @@ export function patchSlider(Slider) {
     // are upgraded the moment Carbon defines `cds-slider`, before this module
     // runs) has captured the unpatched pointermove handler in its throttled
     // copy; point it at the patched one.
+    // Its shadow root was also created before the patch.
     document.querySelectorAll("cds-slider").forEach(slider => {
-        if (slider instanceof Slider && slider._throttledHandlePointermoveImpl) {
+        if (!(slider instanceof Slider)) return;
+        if (slider._throttledHandlePointermoveImpl) {
             slider._throttledHandlePointermoveImpl = event => slider._handlePointermoveImpl(event);
         }
+        allowNarrow(slider);
+        watchWidth(slider);
     });
 }
 

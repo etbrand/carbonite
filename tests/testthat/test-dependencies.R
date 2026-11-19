@@ -18,12 +18,24 @@ test_that("Bundled JS files actually exist in inst/www", {
   )
 })
 
+# The files an htmlDependency's `script` names: file names, or lists with a
+# `src` (e.g. with `defer`), alone or in a list.
+script_files <- function(script) {
+  if (is.null(script)) {
+    return(character())
+  }
+  if (is.character(script)) {
+    return(script)
+  }
+  if (!is.null(script$src)) {
+    return(script$src)
+  }
+  unlist(lapply(script, script_files))
+}
+
 test_that("every file a dependency loads exists in the installed package", {
   for (dep in list(carbon_dependency(), carbon_page_dependency())) {
-    files <- c(
-      vapply(dep$script, function(s) if (is.list(s)) s$src else s, character(1)),
-      unlist(dep$stylesheet)
-    )
+    files <- c(script_files(dep$script), unlist(dep$stylesheet))
     expect_true(length(files) > 0)
     for (file in files) {
       expect_true(file.exists(file.path(dep$src$file, file)), label = paste(dep$name, file))

@@ -320,3 +320,85 @@ describe("range slider patch", () => {
         expect(click).toHaveBeenCalledTimes(3);
     });
 });
+
+describe("narrow sliders", () => {
+    it("lets the track shrink, with one shared stylesheet added once", async () => {
+        const { allowNarrow } = await import("../slider.js");
+        const slider = document.createElement("cds-slider");
+        slider.attachShadow({ mode: "open" });
+
+        allowNarrow(slider);
+        allowNarrow(slider);
+
+        const sheets = slider.shadowRoot.adoptedStyleSheets;
+        expect(sheets).toHaveLength(1);
+        expect([...sheets[0].cssRules].map(rule => rule.cssText).join("")).toContain("min-inline-size");
+    });
+
+    it("adds it when Lit creates a slider's shadow root", async () => {
+        const { patchSlider } = await import("../slider.js");
+        class RootSlider extends HTMLElement {}
+        RootSlider.prototype._handlePointermoveImpl = () => {};
+        RootSlider.prototype._handleClick = () => {};
+        RootSlider.prototype.createRenderRoot = function () { return this.attachShadow({ mode: "open" }); };
+        patchSlider(RootSlider);
+        const name = `root-slider-${Math.random().toString(36).slice(2)}`;
+        customElements.define(name, RootSlider);
+
+        const slider = document.createElement(name);
+        const root = slider.createRenderRoot();
+
+        expect(root).toBe(slider.shadowRoot);
+        expect(root.adoptedStyleSheets).toHaveLength(1);
+    });
+
+    it("skips sliders without a shadow root yet", async () => {
+        const { allowNarrow } = await import("../slider.js");
+        expect(() => allowNarrow(document.createElement("cds-slider"))).not.toThrow();
+    });
+});
+
+describe("number boxes in narrow columns", () => {
+    // A slider whose contents are `content` px wide in a slider `width` px wide
+    function fakeSlider({ width, content, hideTextInput = false }) {
+        const slider = document.createElement("div");
+        slider.attachShadow({ mode: "open" }).innerHTML = `<div class="cds--slider-container"></div>`;
+        const container = slider.shadowRoot.firstElementChild;
+        Object.defineProperty(container, "clientWidth", { get: () => slider._width });
+        Object.defineProperty(container, "scrollWidth", { get: () => Math.max(slider._width, slider._content) });
+        Object.defineProperty(slider, "clientWidth", { get: () => slider._width });
+        Object.assign(slider, { _width: width, _content: content, hideTextInput });
+        return slider;
+    }
+
+    it("hides the boxes while they overflow, and shows them once there's room", async () => {
+        const { fitNumberBoxes } = await import("../slider.js");
+        const slider = fakeSlider({ width: 190, content: 300 });
+
+        fitNumberBoxes(slider);
+        expect(slider.hideTextInput).toBe(true);
+
+        // Without the boxes it fits, but not yet wide enough to bring them back
+        Object.assign(slider, { _width: 250, _content: 200 });
+        fitNumberBoxes(slider);
+        expect(slider.hideTextInput).toBe(true);
+
+        slider._width = 320;
+        fitNumberBoxes(slider);
+        expect(slider.hideTextInput).toBe(false);
+    });
+
+    it("leaves sliders that fit, and boxes the app hid, alone", async () => {
+        const { fitNumberBoxes } = await import("../slider.js");
+
+        const fits = fakeSlider({ width: 400, content: 300 });
+        fitNumberBoxes(fits);
+        expect(fits.hideTextInput).toBe(false);
+
+        const appHid = fakeSlider({ width: 190, content: 300, hideTextInput: true });
+        fitNumberBoxes(appHid);
+        appHid._width = 600;
+        fitNumberBoxes(appHid);
+        expect(appHid.hideTextInput).toBe(true);
+    });
+});

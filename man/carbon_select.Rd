@@ -28,13 +28,16 @@ name, and single choices stay ungrouped, as in
 \code{shiny::selectInput()}.}
 
 \item{selected}{The initially selected value. Must match one of the supplied
-choice values.}
+choice values. Defaults to the first choice, as in
+\code{shiny::selectInput()}, unless there is a \code{placeholder}.}
 
 \item{size}{Optional Carbon size. Possible values are `"xs"`, `"sm"`, `"md"`, and
 `"lg"`.}
 
 \item{placeholder}{Optional placeholder text displayed when no value is
-selected.}
+selected. With a placeholder and no \code{selected} value, the select
+starts empty, showing the placeholder, and the input is \code{""} until
+the user picks a choice.}
 
 \item{helper_text}{Optional helper text displayed below input.}
 

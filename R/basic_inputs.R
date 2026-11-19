@@ -95,11 +95,14 @@ carbon_button <- function(
 #'   name, and single choices stay ungrouped, as in
 #'   \code{shiny::selectInput()}.
 #' @param selected The initially selected value. Must match one of the supplied
-#'   choice values.
+#'   choice values. Defaults to the first choice, as in
+#'   \code{shiny::selectInput()}, unless there is a \code{placeholder}.
 #' @param size Optional Carbon size. Possible values are `"xs"`, `"sm"`, `"md"`, and
 #'   `"lg"`.
 #' @param placeholder Optional placeholder text displayed when no value is
-#'   selected.
+#'   selected. With a placeholder and no \code{selected} value, the select
+#'   starts empty, showing the placeholder, and the input is \code{""} until
+#'   the user picks a choice.
 #' @param helper_text Optional helper text displayed below input.
 #' @param ... Additional attributes passed to the underlying Carbon
 #'   select element.
@@ -144,6 +147,12 @@ carbon_select <- function(
   ...
 ) {
   size <- match.arg(size)
+
+  # Like shiny::selectInput(), start on the first choice, unless there's a
+  # placeholder to show instead.
+  if (is.null(selected) && is.null(placeholder)) {
+    selected <- unname(unlist(choices))[1]
+  }
   items <- .select_items(choices, selected)
 
   .build_carbon_tag(

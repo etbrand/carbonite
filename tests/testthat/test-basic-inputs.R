@@ -78,8 +78,29 @@ test_that("carbon_select marks the selected item and sets value", {
 test_that("carbon_select uses values as labels for unnamed choices", {
   sel <- carbon_select("x", choices = c("one", "two"))
 
+  expect_match(as.character(sel), '<cds-select-item value="two">two</cds-select-item>', fixed = TRUE)
+})
+
+test_that("carbon_select starts on the first choice, like selectInput()", {
+  sel <- carbon_select("x", choices = c(One = "one", Two = "two"))
+
+  expect_equal(attr_of(sel, "value"), "one")
+  items <- find_tags(sel, "cds-select-item")
+  expect_equal(vapply(items, has_attr, logical(1), "selected"), c(TRUE, FALSE))
+
+  # The first choice of grouped choices, too
+  grouped <- carbon_select("g", choices = list(Fruit = c("apple", "pear"), Veg = c("leek", "kale")))
+  expect_equal(attr_of(grouped, "value"), "apple")
+})
+
+test_that("carbon_select with a placeholder and no selection starts empty", {
+  sel <- carbon_select("x", choices = c("one", "two"), placeholder = "Choose")
+
   expect_false(has_attr(sel, "value"))
-  expect_match(as.character(sel), '<cds-select-item value="one">one</cds-select-item>', fixed = TRUE)
+  expect_false(any(vapply(find_tags(sel, "cds-select-item"), has_attr, logical(1), "selected")))
+
+  # An explicit selection still wins over the placeholder
+  expect_equal(attr_of(carbon_select("x", choices = c("one", "two"), selected = "two", placeholder = "Choose"), "value"), "two")
 })
 
 # carbon_text_input -----------------------------------------------------------
