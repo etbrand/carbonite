@@ -17,9 +17,7 @@
 * **JavaScript sources.** The non-minified sources of `carbonite.min.js` and
   `carbonite.min.css` are in the package's GitHub repository
   (<https://github.com/etbrand/carbonite/tree/main/srcjs>), with the
-  instructions to rebuild them in `inst/COPYRIGHTS`. They aren't in the
-  tarball, to keep the source package small and free of a non-standard
-  top-level directory.
+  instructions to rebuild them in `inst/COPYRIGHTS`.
 
 * **`\dontrun{}` examples.** The examples of the `update_carbon_*()`
   functions are in `\dontrun{}` because these functions send messages to a
@@ -30,3 +28,5 @@
 ## Test environments
 
 * Windows 11, R 4.6.2 (local)
+* win-builder:
+  * Windows x64 (x86_64-w64-mingw32), R-devel (2026-11-17 r90926 ucrt)
