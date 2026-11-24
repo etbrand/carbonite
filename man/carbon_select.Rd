@@ -23,7 +23,7 @@ carbon_select(
 \item{choices}{A named or unnamed vector of choices. Names are displayed to
 the user, while values are returned to the server. To group options
 under headings, pass a named list: each element with several choices
-(a vector of length > 1, or a list) becomes a group labelled with its
+(a vector of length > 1, or a list) becomes a group labeled with its
 name, and single choices stay ungrouped, as in
 \code{shiny::selectInput()}.}
 

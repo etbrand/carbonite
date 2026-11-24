@@ -12,10 +12,16 @@
   call = rlang::caller_env()
 ) {
   if (!rlang::is_bool(close_button)) {
-    cli::cli_abort("{.arg close_button} must be {.code TRUE} or {.code FALSE}.", call = call)
+    cli::cli_abort(
+      "{.arg close_button} must be {.code TRUE} or {.code FALSE}.",
+      call = call
+    )
   }
   if (!rlang::is_bool(low_contrast)) {
-    cli::cli_abort("{.arg low_contrast} must be {.code TRUE} or {.code FALSE}.", call = call)
+    cli::cli_abort(
+      "{.arg low_contrast} must be {.code TRUE} or {.code FALSE}.",
+      call = call
+    )
   }
 
   .build_carbon_tag(
@@ -29,7 +35,9 @@
       attribs,
       list(
         htmltools::tags$span(slot = "title", title),
-        if (!is.null(subtitle)) htmltools::tags$span(slot = "subtitle", subtitle)
+        if (!is.null(subtitle)) {
+          htmltools::tags$span(slot = "subtitle", subtitle)
+        }
       )
     )
   )
@@ -46,7 +54,7 @@
 #'
 #' @param title The notification's title, shown in bold. A string or tags.
 #' @param subtitle Optional text after the title. A string or tags.
-#' @param kind The notification type, which sets its colour and icon. One of
+#' @param kind The notification type, which sets its color and icon. One of
 #'   \code{"info"}, \code{"success"}, \code{"warning"}, or \code{"error"}.
 #' @param close_button Whether to show a close button.
 #' @param low_contrast If \code{TRUE}, use Carbon's lighter, low-contrast
@@ -108,7 +116,7 @@ carbon_inline_notification <- function(
 #'
 #' @param title The notification's title, shown in bold. A string or tags.
 #' @param subtitle Optional text below the title. A string or tags.
-#' @param kind The notification type, which sets its colour and icon. One of
+#' @param kind The notification type, which sets its color and icon. One of
 #'   \code{"info"}, \code{"success"}, \code{"warning"}, or \code{"error"}.
 #' @param duration Seconds before the notification closes by itself.
 #'   \code{NULL} keeps it until the user or the server closes it.
@@ -164,15 +172,28 @@ show_carbon_notification <- function(
 ) {
   kind <- match.arg(kind)
 
-  if (!is.null(duration) && (!is.numeric(duration) || length(duration) != 1 || is.na(duration) || duration <= 0)) {
-    cli::cli_abort("{.arg duration} must be a positive number of seconds, or {.code NULL}.")
+  if (
+    !is.null(duration) &&
+      (!is.numeric(duration) ||
+        length(duration) != 1 ||
+        is.na(duration) ||
+        duration <= 0)
+  ) {
+    cli::cli_abort(
+      "{.arg duration} must be a positive number of seconds, or {.code NULL}."
+    )
   }
 
   if (is.null(id)) {
-    id <- paste0("carbonite-notification-", paste(sample(c(0:9, letters[1:6]), 12, replace = TRUE), collapse = ""))
+    id <- paste0(
+      "carbonite-notification-",
+      paste(sample(c(0:9, letters[1:6]), 12, replace = TRUE), collapse = "")
+    )
   } else {
     if (!rlang::is_string(id) || !grepl("^[A-Za-z][A-Za-z0-9_-]*$", id)) {
-      cli::cli_abort("{.arg id} must be a single string of letters, digits, {.val -}, and {.val _}, starting with a letter.")
+      cli::cli_abort(
+        "{.arg id} must be a single string of letters, digits, {.val -}, and {.val _}, starting with a letter."
+      )
     }
     # Replace a notification already showing with this id
     remove_carbon_notification(id, session = session)
@@ -194,7 +215,10 @@ show_carbon_notification <- function(
     )
   )
   if (!is.null(caption)) {
-    toast <- htmltools::tagAppendChild(toast, htmltools::tags$span(slot = "caption", caption))
+    toast <- htmltools::tagAppendChild(
+      toast,
+      htmltools::tags$span(slot = "caption", caption)
+    )
   }
 
   shiny::insertUI(
@@ -210,7 +234,10 @@ show_carbon_notification <- function(
 
 #' @rdname show_carbon_notification
 #' @export
-remove_carbon_notification <- function(id, session = shiny::getDefaultReactiveDomain()) {
+remove_carbon_notification <- function(
+  id,
+  session = shiny::getDefaultReactiveDomain()
+) {
   if (!rlang::is_string(id)) {
     cli::cli_abort("{.arg id} must be a single string.")
   }

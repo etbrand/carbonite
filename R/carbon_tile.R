@@ -14,7 +14,7 @@
 #' Carbon Tile
 #'
 #' Create a Carbon tile: a container that groups related content on a
-#' layer-coloured background. With \code{href}, the whole tile becomes a link
+#' layer-colored background. With \code{href}, the whole tile becomes a link
 #' (Carbon's clickable tile).
 #'
 #' @param ... Tile content. Named arguments become attributes of the tile,

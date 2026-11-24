@@ -46,7 +46,7 @@ A \code{carbon_table_column} object for the \code{columns}
   argument of \code{carbon_table()}.
 }
 \description{
-Customise how a column is displayed in \code{carbon_table()}.
+Customize how a column is displayed in \code{carbon_table()}.
 }
 \examples{
 carbon_table_column(

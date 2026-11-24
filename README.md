@@ -1,5 +1,9 @@
 # carbonite
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/etbrand/carbonite/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/etbrand/carbonite/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
 [Shiny](https://shiny.posit.co/) bindings for IBM's
 [Carbon Design System](https://www.carbondesignsystem.com/).
 

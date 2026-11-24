@@ -21,7 +21,7 @@ An HTML tag representing a Carbon tile.
 }
 \description{
 Create a Carbon tile: a container that groups related content on a
-layer-coloured background. With \code{href}, the whole tile becomes a link
+layer-colored background. With \code{href}, the whole tile becomes a link
 (Carbon's clickable tile).
 }
 \examples{

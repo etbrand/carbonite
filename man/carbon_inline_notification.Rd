@@ -18,7 +18,7 @@ carbon_inline_notification(
 
 \item{subtitle}{Optional text after the title. A string or tags.}
 
-\item{kind}{The notification type, which sets its colour and icon. One of
+\item{kind}{The notification type, which sets its color and icon. One of
 \code{"info"}, \code{"success"}, \code{"warning"}, or \code{"error"}.}
 
 \item{close_button}{Whether to show a close button.}

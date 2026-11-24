@@ -91,7 +91,7 @@ carbon_button <- function(
 #' @param choices A named or unnamed vector of choices. Names are displayed to
 #'   the user, while values are returned to the server. To group options
 #'   under headings, pass a named list: each element with several choices
-#'   (a vector of length > 1, or a list) becomes a group labelled with its
+#'   (a vector of length > 1, or a list) becomes a group labeled with its
 #'   name, and single choices stay ungrouped, as in
 #'   \code{shiny::selectInput()}.
 #' @param selected The initially selected value. Must match one of the supplied
@@ -939,7 +939,11 @@ update_carbon_number_input <- function(
 
 # `cds-select-item`s for carbon_select(), with `cds-select-item-group`s for
 # grouped choices (a list whose elements with several choices are groups).
-.select_items <- function(choices, selected = NULL, call = rlang::caller_env()) {
+.select_items <- function(
+  choices,
+  selected = NULL,
+  call = rlang::caller_env()
+) {
   item <- function(text, value) {
     htmltools::tag(
       "cds-select-item",
@@ -960,9 +964,16 @@ update_carbon_number_input <- function(
   }
 
   labels <- names(choices)
-  is_group <- vapply(choices, function(x) is.list(x) || length(x) > 1, logical(1))
+  is_group <- vapply(
+    choices,
+    function(x) is.list(x) || length(x) > 1,
+    logical(1)
+  )
   if (any(is_group) && (is.null(labels) || any(!nzchar(labels[is_group])))) {
-    cli::cli_abort("Each group in {.arg choices} needs a name, its heading.", call = call)
+    cli::cli_abort(
+      "Each group in {.arg choices} needs a name, its heading.",
+      call = call
+    )
   }
 
   unname(lapply(seq_along(choices), function(i) {
@@ -973,7 +984,11 @@ update_carbon_number_input <- function(
       )
     } else {
       value <- choices[[i]]
-      text <- if (!is.null(labels) && nzchar(labels[[i]])) labels[[i]] else value
+      text <- if (!is.null(labels) && nzchar(labels[[i]])) {
+        labels[[i]]
+      } else {
+        value
+      }
       item(text, value)
     }
   }))

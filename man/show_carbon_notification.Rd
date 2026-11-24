@@ -24,7 +24,7 @@ remove_carbon_notification(id, session = shiny::getDefaultReactiveDomain())
 
 \item{subtitle}{Optional text below the title. A string or tags.}
 
-\item{kind}{The notification type, which sets its colour and icon. One of
+\item{kind}{The notification type, which sets its color and icon. One of
 \code{"info"}, \code{"success"}, \code{"warning"}, or \code{"error"}.}
 
 \item{duration}{Seconds before the notification closes by itself.

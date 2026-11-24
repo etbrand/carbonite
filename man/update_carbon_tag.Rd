@@ -18,7 +18,7 @@ update_carbon_tag(
 
 \item{label}{Optional new text.}
 
-\item{type}{Optional new colour (not for selectable tags). See
+\item{type}{Optional new color (not for selectable tags). See
 \code{carbon_tag()} for the types.}
 
 \item{selected}{Optional \code{TRUE} or \code{FALSE}, to select or

@@ -93,14 +93,14 @@
     position: relative;
 }
 
-.carbon-table-output--loading > .carbon-table-output__table {
+.carbon-table-output--loading>.carbon-table-output__table {
     visibility: hidden;
     position: absolute;
     inset: 0;
     pointer-events: none;
 }
 
-.carbon-table-output:not(.carbon-table-output--loading) > .carbon-table-output__skeleton {
+.carbon-table-output:not(.carbon-table-output--loading)>.carbon-table-output__skeleton {
     display: none;
 }
 
@@ -118,11 +118,11 @@
     max-inline-size: 22rem;
 }
 
-.carbonite-popover__body > :first-child {
+.carbonite-popover__body> :first-child {
     margin-block-start: 0;
 }
 
-.carbonite-popover__body > :last-child {
+.carbonite-popover__body> :last-child {
     margin-block-end: 0;
 }
 
@@ -142,14 +142,14 @@
     pointer-events: none;
 }
 
-.carbonite-toast-stack > * {
+.carbonite-toast-stack>* {
     pointer-events: auto;
     margin: 0;
 }
 
 // carbon_content_switcher(): Carbon greys out a disabled option's label only
 // when it is slotted as a <p>; carbon_switch() labels are spans.
-cds-content-switcher-item[disabled] > .carbonite-switch-label {
+cds-content-switcher-item[disabled]>.carbonite-switch-label {
     color: var(--cds-text-disabled, rgba(22, 22, 22, 0.25));
 }
 
@@ -179,11 +179,11 @@ cds-table-header-cell::part(sort-icon) {
 // lets the content run underneath the chevron (bottom-right when expanded,
 // top-right when collapsed), so a full-width input can cover it. Keep the
 // chevron's corner clear.
-cds-expandable-tile[with-interactive] > cds-tile-above-the-fold-content {
+cds-expandable-tile[with-interactive]>cds-tile-above-the-fold-content {
     padding-inline-end: 2rem;
 }
 
-cds-expandable-tile[with-interactive] > cds-tile-below-the-fold-content {
+cds-expandable-tile[with-interactive]>cds-tile-below-the-fold-content {
     padding-block-end: 2rem;
 }
 
@@ -191,8 +191,8 @@ cds-expandable-tile[with-interactive] > cds-tile-below-the-fold-content {
 // Shiny can't see: its visibility check walks up `parentElement`, so outputs
 // in a closed item count as visible and never suspend. Hiding the content in
 // the light DOM as well lets Shiny pause them until the item is opened.
-cds-accordion-item:not([open]) > :not([slot]),
-cds-accordion-item[disabled] > :not([slot]) {
+cds-accordion-item:not([open])> :not([slot]),
+cds-accordion-item[disabled]> :not([slot]) {
     display: none;
 }
 
@@ -211,7 +211,7 @@ cds-accordion-item[disabled] > :not([slot]) {
         inline-size: min(36rem, 90%);
     }
 
-    .cds--skeleton__text + .cds--skeleton__text {
+    .cds--skeleton__text+.cds--skeleton__text {
         inline-size: min(24rem, 60%);
     }
 }
@@ -242,7 +242,7 @@ cds-accordion-item[disabled] > :not([slot]) {
 }
 
 // carbon_table_column(action = TRUE): cell content as a link-styled button
-// (see srcjs/table-cell-action.js). Carbon's link colours and focus ring.
+// (see srcjs/table-cell-action.js). Carbon's link colors and focus ring.
 .carbonite-cell-action {
     padding: 0;
     border: 0;

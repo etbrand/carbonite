@@ -1,6 +1,16 @@
 .tag_types <- c(
-  "gray", "cool-gray", "warm-gray", "red", "magenta", "purple", "blue",
-  "cyan", "teal", "green", "high-contrast", "outline"
+  "gray",
+  "cool-gray",
+  "warm-gray",
+  "red",
+  "magenta",
+  "purple",
+  "blue",
+  "cyan",
+  "teal",
+  "green",
+  "high-contrast",
+  "outline"
 )
 
 
@@ -8,10 +18,16 @@
 # and lg sizes.
 .tag_attribs <- function(size, disabled, icon, call = rlang::caller_env()) {
   if (!rlang::is_bool(disabled)) {
-    cli::cli_abort("{.arg disabled} must be {.code TRUE} or {.code FALSE}.", call = call)
+    cli::cli_abort(
+      "{.arg disabled} must be {.code TRUE} or {.code FALSE}.",
+      call = call
+    )
   }
   if (!is.null(icon) && size == "sm") {
-    cli::cli_warn("Carbon doesn't show icons on {.val sm} tags; use {.code size = \"md\"} or {.val lg}.", call = call)
+    cli::cli_warn(
+      "Carbon doesn't show icons on {.val sm} tags; use {.code size = \"md\"} or {.val lg}.",
+      call = call
+    )
   }
 
   list(
@@ -31,13 +47,13 @@
 
 #' Carbon Tag
 #'
-#' Create a read-only Carbon tag: a small label for categorising or
+#' Create a read-only Carbon tag: a small label for categorizing or
 #' highlighting content, such as a status. For tags the user can interact
 #' with, see \code{carbon_dismissible_tag()}, \code{carbon_selectable_tag()},
 #' and \code{carbon_operational_tag()}.
 #'
 #' @param label The tag text.
-#' @param type The tag colour. One of \code{"gray"}, \code{"cool-gray"},
+#' @param type The tag color. One of \code{"gray"}, \code{"cool-gray"},
 #'   \code{"warm-gray"}, \code{"red"}, \code{"magenta"}, \code{"purple"},
 #'   \code{"blue"}, \code{"cyan"}, \code{"teal"}, \code{"green"},
 #'   \code{"high-contrast"}, or \code{"outline"}.
@@ -69,8 +85,18 @@
 carbon_tag <- function(
   label,
   type = c(
-    "gray", "cool-gray", "warm-gray", "red", "magenta", "purple", "blue",
-    "cyan", "teal", "green", "high-contrast", "outline"
+    "gray",
+    "cool-gray",
+    "warm-gray",
+    "red",
+    "magenta",
+    "purple",
+    "blue",
+    "cyan",
+    "teal",
+    "green",
+    "high-contrast",
+    "outline"
   ),
   size = c("md", "sm", "lg"),
   icon = NULL,
@@ -84,8 +110,13 @@ carbon_tag <- function(
 
   if (isTRUE(dismissible)) {
     return(carbon_dismissible_tag(
-      inputId = id, label = label, type = type, size = size, icon = icon,
-      disabled = disabled, ...
+      inputId = id,
+      label = label,
+      type = type,
+      size = size,
+      icon = icon,
+      disabled = disabled,
+      ...
     ))
   }
 
@@ -128,8 +159,18 @@ carbon_dismissible_tag <- function(
   inputId,
   label,
   type = c(
-    "gray", "cool-gray", "warm-gray", "red", "magenta", "purple", "blue",
-    "cyan", "teal", "green", "high-contrast", "outline"
+    "gray",
+    "cool-gray",
+    "warm-gray",
+    "red",
+    "magenta",
+    "purple",
+    "blue",
+    "cyan",
+    "teal",
+    "green",
+    "high-contrast",
+    "outline"
   ),
   size = c("md", "sm", "lg"),
   icon = NULL,
@@ -194,7 +235,11 @@ carbon_selectable_tag <- function(
   .build_carbon_tag(
     "cds-selectable-tag",
     c(
-      list(id = inputId, text = .check_tag_text(label), selected = if (selected) NA),
+      list(
+        id = inputId,
+        text = .check_tag_text(label),
+        selected = if (selected) NA
+      ),
       .tag_attribs(size, disabled, icon),
       list(...)
     )
@@ -226,8 +271,18 @@ carbon_operational_tag <- function(
   inputId,
   label,
   type = c(
-    "gray", "cool-gray", "warm-gray", "red", "magenta", "purple", "blue",
-    "cyan", "teal", "green", "high-contrast", "outline"
+    "gray",
+    "cool-gray",
+    "warm-gray",
+    "red",
+    "magenta",
+    "purple",
+    "blue",
+    "cyan",
+    "teal",
+    "green",
+    "high-contrast",
+    "outline"
   ),
   size = c("md", "sm", "lg"),
   icon = NULL,
@@ -254,7 +309,7 @@ carbon_operational_tag <- function(
 #'
 #' @param inputId The tag's input id.
 #' @param label Optional new text.
-#' @param type Optional new colour (not for selectable tags). See
+#' @param type Optional new color (not for selectable tags). See
 #'   \code{carbon_tag()} for the types.
 #' @param selected Optional \code{TRUE} or \code{FALSE}, to select or
 #'   deselect a selectable tag. Its input updates to match.
@@ -292,13 +347,17 @@ update_carbon_tag <- function(
   }
   if (!is.null(selected)) {
     if (!rlang::is_bool(selected)) {
-      cli::cli_abort("{.arg selected} must be {.code TRUE}, {.code FALSE}, or {.code NULL}.")
+      cli::cli_abort(
+        "{.arg selected} must be {.code TRUE}, {.code FALSE}, or {.code NULL}."
+      )
     }
     msg$selected <- selected
   }
   if (!is.null(disabled)) {
     if (!rlang::is_bool(disabled)) {
-      cli::cli_abort("{.arg disabled} must be {.code TRUE}, {.code FALSE}, or {.code NULL}.")
+      cli::cli_abort(
+        "{.arg disabled} must be {.code TRUE}, {.code FALSE}, or {.code NULL}."
+      )
     }
     msg$disabled <- disabled
   }

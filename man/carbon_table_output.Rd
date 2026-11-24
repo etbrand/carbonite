@@ -17,7 +17,7 @@ carbon_table_output(
 
 \item{initial_columns}{Optional column header labels for the skeleton
 shown before the first render. Names are ignored. \code{NULL} shows five
-unlabelled columns.}
+unlabeled columns.}
 
 \item{initial_rows}{Number of rows in the skeleton shown before the first
 render.}

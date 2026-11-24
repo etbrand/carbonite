@@ -48,7 +48,7 @@ normalize_columns <- function(data, columns, sortable) {
 
 #' Carbon Table Column Definition
 #'
-#' Customise how a column is displayed in \code{carbon_table()}.
+#' Customize how a column is displayed in \code{carbon_table()}.
 #'
 #' @param label The column header text. Defaults to the column name.
 #' @param sortable Whether the column shows a sort control. \code{NULL} uses
@@ -134,7 +134,7 @@ carbon_table_column <- function(
 #' @param outputId The output slot that will be used to render the table.
 #' @param initial_columns Optional column header labels for the skeleton
 #'   shown before the first render. Names are ignored. \code{NULL} shows five
-#'   unlabelled columns.
+#'   unlabeled columns.
 #' @param initial_rows Number of rows in the skeleton shown before the first
 #'   render.
 #' @param size The row height of the skeleton shown before the first render.
@@ -369,86 +369,101 @@ carbon_table_body <- function(
   # hidden, and srcjs/table-expand.js removes their rows' expand buttons.
   htmltools::tag(
     "cds-table-body",
-    unlist(recursive = FALSE, lapply(seq_len(nrow(data)), function(i) {
-      key <- row_keys[[i]]
-      page_hidden <- if (!is.null(page_size) && i > page_size) NA
+    unlist(
+      recursive = FALSE,
+      lapply(seq_len(nrow(data)), function(i) {
+        key <- row_keys[[i]]
+        page_hidden <- if (!is.null(page_size) && i > page_size) NA
 
-      row <- htmltools::tag(
-        "cds-table-row",
-        c(
-          list(
-            size = size,
-            `data-row-index` = i,
-            `data-row-key` = key,
-            `selection-name` = if (selectable) key,
-            selected = if (selectable && key %in% selected) NA,
-            `data-page-hidden` = page_hidden
-          ),
-          lapply(names(columns), function(name) {
-            sort_value <- sort_values[[name]][i]
-            content <- data[[name]][i]
+        row <- htmltools::tag(
+          "cds-table-row",
+          c(
+            list(
+              size = size,
+              `data-row-index` = i,
+              `data-row-key` = key,
+              `selection-name` = if (selectable) key,
+              selected = if (selectable && key %in% selected) NA,
+              `data-page-hidden` = page_hidden
+            ),
+            lapply(names(columns), function(name) {
+              sort_value <- sort_values[[name]][i]
+              content <- data[[name]][i]
 
-            # carbon_table_column(action = TRUE): a button that
-            # srcjs/table-cell-action.js reports as input$<id>_cell_click.
-            # Same text, so search and text sorting are unaffected.
-            column <- columns[[name]]
-            if (isTRUE(column$action) && !is.null(column$action_icon)) {
-              # Plain text, then an icon-only button
-              text <- if (is.character(content) && length(content) == 1 && !is.na(content)) content
-              content <- htmltools::tags$span(
-                class = "carbonite-cell-with-action",
-                htmltools::tags$span(content),
-                htmltools::tags$button(
+              # carbon_table_column(action = TRUE): a button that
+              # srcjs/table-cell-action.js reports as input$<id>_cell_click.
+              # Same text, so search and text sorting are unaffected.
+              column <- columns[[name]]
+              if (isTRUE(column$action) && !is.null(column$action_icon)) {
+                # Plain text, then an icon-only button
+                text <- if (
+                  is.character(content) &&
+                    length(content) == 1 &&
+                    !is.na(content)
+                ) {
+                  content
+                }
+                content <- htmltools::tags$span(
+                  class = "carbonite-cell-with-action",
+                  htmltools::tags$span(content),
+                  htmltools::tags$button(
+                    type = "button",
+                    class = "carbonite-cell-action carbonite-cell-action--icon",
+                    `data-column` = name,
+                    title = column$action_label,
+                    `aria-label` = if (is.null(text)) {
+                      column$action_label
+                    } else {
+                      paste0(column$action_label, ": ", text)
+                    },
+                    carbon_icon(column$action_icon, size = 16)
+                  )
+                )
+              } else if (isTRUE(column$action)) {
+                content <- htmltools::tags$button(
                   type = "button",
-                  class = "carbonite-cell-action carbonite-cell-action--icon",
+                  class = "carbonite-cell-action",
                   `data-column` = name,
-                  title = column$action_label,
-                  `aria-label` = if (is.null(text)) column$action_label else paste0(column$action_label, ": ", text),
-                  carbon_icon(column$action_icon, size = 16)
+                  content
+                )
+              }
+
+              htmltools::tag(
+                "cds-table-cell",
+                list(
+                  content,
+                  `data-sort-value` = if (
+                    !is.null(sort_value) && !is.na(sort_value)
+                  ) {
+                    sort_value
+                  }
                 )
               )
-            } else if (isTRUE(column$action)) {
-              content <- htmltools::tags$button(
-                type = "button",
-                class = "carbonite-cell-action",
-                `data-column` = name,
-                content
-              )
-            }
-
-            htmltools::tag(
-              "cds-table-cell",
-              list(
-                content,
-                `data-sort-value` = if (!is.null(sort_value) && !is.na(sort_value)) {
-                  sort_value
-                }
-              )
-            )
-          })
-        )
-      )
-
-      if (is.null(details)) {
-        return(list(row))
-      }
-
-      content <- details[[i]]
-      list(
-        row,
-        htmltools::tag(
-          "cds-table-expanded-row",
-          list(
-            `data-expands-row` = i,
-            `data-empty` = if (is.null(content)) NA,
-            # A placeholder until srcjs/table-lazy-details.js loads the content
-            `data-lazy` = if (lazy_details) NA,
-            `data-page-hidden` = page_hidden,
-            content
+            })
           )
         )
-      )
-    }))
+
+        if (is.null(details)) {
+          return(list(row))
+        }
+
+        content <- details[[i]]
+        list(
+          row,
+          htmltools::tag(
+            "cds-table-expanded-row",
+            list(
+              `data-expands-row` = i,
+              `data-empty` = if (is.null(content)) NA,
+              # A placeholder until srcjs/table-lazy-details.js loads the content
+              `data-lazy` = if (lazy_details) NA,
+              `data-page-hidden` = page_hidden,
+              content
+            )
+          )
+        )
+      })
+    )
   )
 
   # htmltools::tag(
@@ -622,7 +637,7 @@ carbon_table_toolbar <- function(
 #'
 #' @param data A data frame. Every column is shown, in the data's column
 #'   order.
-#' @param columns Optional named list customising columns, keyed by column
+#' @param columns Optional named list customizing columns, keyed by column
 #'   name. Each element is either a header label or a
 #'   \code{carbon_table_column()}. Columns not listed use their name as the
 #'   label.
@@ -752,7 +767,9 @@ carbon_table <- function(
     cli::cli_abort("{.arg lazy_details} must be {.code TRUE} or {.code FALSE}.")
   }
   if (lazy_details && !is.function(row_details)) {
-    cli::cli_abort("{.arg lazy_details} needs {.arg row_details} to be a function of a row.")
+    cli::cli_abort(
+      "{.arg lazy_details} needs {.arg row_details} to be a function of a row."
+    )
   }
 
   # Lazy: a placeholder for every row now; render_carbon_table() calls
@@ -790,10 +807,14 @@ carbon_table <- function(
   selected <- .check_table_selected(selected, row_keys, selection)
 
   if (!is.null(toolbar) && !inherits(toolbar, "carbon_table_toolbar")) {
-    cli::cli_abort("{.arg toolbar} must be created with {.fn carbon_table_toolbar}.")
+    cli::cli_abort(
+      "{.arg toolbar} must be created with {.fn carbon_table_toolbar}."
+    )
   }
   if (
-    !is.null(toolbar) && length(toolbar$batch_actions) && selection != "multiple"
+    !is.null(toolbar) &&
+      length(toolbar$batch_actions) &&
+      selection != "multiple"
   ) {
     cli::cli_abort(
       "Batch actions need {.code selection = \"multiple\"} in {.fn carbon_table}."
@@ -878,8 +899,13 @@ carbon_table <- function(
   n <- nrow(data)
 
   if (is.function(row_details)) {
-    details <- lapply(seq_len(n), function(i) .call_row_details(row_details, data, i))
-  } else if (is.atomic(row_details) || is.list(row_details) && !inherits(row_details, "shiny.tag")) {
+    details <- lapply(seq_len(n), function(i) {
+      .call_row_details(row_details, data, i)
+    })
+  } else if (
+    is.atomic(row_details) ||
+      is.list(row_details) && !inherits(row_details, "shiny.tag")
+  ) {
     if (length(row_details) != n) {
       cli::cli_abort(
         "{.arg row_details} must have one element per row of {.arg data} ({n}), not {length(row_details)}.",
@@ -909,7 +935,9 @@ carbon_table <- function(
 # No details for a row: NULL, NA, or ""
 .is_empty_details <- function(x) {
   is.null(x) ||
-    (is.atomic(x) && length(x) == 1 && (is.na(x) || identical(as.character(x), "")))
+    (is.atomic(x) &&
+      length(x) == 1 &&
+      (is.na(x) || identical(as.character(x), "")))
 }
 
 # Lazy row details ------------------------------------------------------------
@@ -945,11 +973,17 @@ carbon_table <- function(
 }
 
 .details_error <- function() {
-  htmltools::div(class = "carbonite-details-error", "Details couldn't be loaded.")
+  htmltools::div(
+    class = "carbonite-details-error",
+    "Details couldn't be loaded."
+  )
 }
 
 # Called by render_carbon_table() with what its expression returned
-.register_lazy_details <- function(ui, session = shiny::getDefaultReactiveDomain()) {
+.register_lazy_details <- function(
+  ui,
+  session = shiny::getDefaultReactiveDomain()
+) {
   lazy <- attr(ui, "carbonite_lazy_details", exact = TRUE)
   if (is.null(lazy) || is.null(session)) {
     return(invisible())
@@ -966,7 +1000,9 @@ carbon_table <- function(
   root <- session$rootScope()
   registry <- root$userData$carbonite_lazy_details
   if (is.null(registry)) {
-    registry <- root$userData$carbonite_lazy_details <- new.env(parent = emptyenv())
+    registry <- root$userData$carbonite_lazy_details <- new.env(
+      parent = emptyenv()
+    )
   }
 
   first_render <- is.null(registry[[base]])
@@ -977,7 +1013,12 @@ carbon_table <- function(
     input_name <- paste0(base, "_details_request")
     shiny::observeEvent(
       root$input[[input_name]],
-      .send_lazy_details(root, base, registry[[base]], root$input[[input_name]]),
+      .send_lazy_details(
+        root,
+        base,
+        registry[[base]],
+        root$input[[input_name]]
+      ),
       domain = root
     )
   }
@@ -1029,14 +1070,26 @@ carbon_table <- function(
   invisible(details)
 }
 
-.check_page_sizes <- function(page_size, page_sizes, call = rlang::caller_env()) {
-  is_count <- function(x) is.numeric(x) && all(!is.na(x) & x >= 1 & x == round(x))
+.check_page_sizes <- function(
+  page_size,
+  page_sizes,
+  call = rlang::caller_env()
+) {
+  is_count <- function(x) {
+    is.numeric(x) && all(!is.na(x) & x >= 1 & x == round(x))
+  }
 
   if (!is.null(page_size) && (length(page_size) != 1 || !is_count(page_size))) {
-    cli::cli_abort("{.arg page_size} must be a single whole number of at least 1, or {.code NULL}.", call = call)
+    cli::cli_abort(
+      "{.arg page_size} must be a single whole number of at least 1, or {.code NULL}.",
+      call = call
+    )
   }
   if (!length(page_sizes) || !is_count(page_sizes)) {
-    cli::cli_abort("{.arg page_sizes} must be whole numbers of at least 1.", call = call)
+    cli::cli_abort(
+      "{.arg page_sizes} must be whole numbers of at least 1.",
+      call = call
+    )
   }
 
   sort(unique(c(page_sizes, page_size)))
@@ -1067,7 +1120,9 @@ carbon_table <- function(
     return(character(0))
   }
   if (selection == "none") {
-    cli::cli_abort("{.arg selected} needs {.arg selection} to be {.val multiple} or {.val single}.")
+    cli::cli_abort(
+      "{.arg selected} needs {.arg selection} to be {.val multiple} or {.val single}."
+    )
   }
 
   selected <- as.character(selected)
@@ -1081,7 +1136,9 @@ carbon_table <- function(
     ))
   }
   if (selection == "single" && length(selected) > 1) {
-    cli::cli_abort("With {.code selection = \"single\"}, {.arg selected} must be a single row.")
+    cli::cli_abort(
+      "With {.code selection = \"single\"}, {.arg selected} must be a single row."
+    )
   }
 
   selected

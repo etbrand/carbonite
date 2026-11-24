@@ -29,7 +29,7 @@ carbon_table(
 \item{data}{A data frame. Every column is shown, in the data's column
 order.}
 
-\item{columns}{Optional named list customising columns, keyed by column
+\item{columns}{Optional named list customizing columns, keyed by column
 name. Each element is either a header label or a
 \code{carbon_table_column()}. Columns not listed use their name as the
 label.}

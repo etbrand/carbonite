@@ -20,7 +20,7 @@ carbon_operational_tag(
 
 \item{label}{The tag text. A single string.}
 
-\item{type}{The tag colour. One of \code{"gray"}, \code{"cool-gray"},
+\item{type}{The tag color. One of \code{"gray"}, \code{"cool-gray"},
 \code{"warm-gray"}, \code{"red"}, \code{"magenta"}, \code{"purple"},
 \code{"blue"}, \code{"cyan"}, \code{"teal"}, \code{"green"},
 \code{"high-contrast"}, or \code{"outline"}.}

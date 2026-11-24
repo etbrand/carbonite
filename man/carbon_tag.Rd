@@ -19,7 +19,7 @@ carbon_tag(
 \arguments{
 \item{label}{The tag text.}
 
-\item{type}{The tag colour. One of \code{"gray"}, \code{"cool-gray"},
+\item{type}{The tag color. One of \code{"gray"}, \code{"cool-gray"},
 \code{"warm-gray"}, \code{"red"}, \code{"magenta"}, \code{"purple"},
 \code{"blue"}, \code{"cyan"}, \code{"teal"}, \code{"green"},
 \code{"high-contrast"}, or \code{"outline"}.}
@@ -45,7 +45,7 @@ element.}
 An HTML tag representing a Carbon tag.
 }
 \description{
-Create a read-only Carbon tag: a small label for categorising or
+Create a read-only Carbon tag: a small label for categorizing or
 highlighting content, such as a status. For tags the user can interact
 with, see \code{carbon_dismissible_tag()}, \code{carbon_selectable_tag()},
 and \code{carbon_operational_tag()}.
