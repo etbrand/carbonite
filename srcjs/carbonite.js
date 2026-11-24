@@ -1,6 +1,7 @@
 import "@carbon/web-components/es/components/ui-shell/index.js";
 import "@carbon/web-components/es/components/accordion/index.js";
-import "@carbon/web-components/es/components/grid/index.js";
+// No Carbon grid components: carbon_grid() and carbon_column() use the CSS
+// grid classes from carbonite.scss.
 import "@carbon/web-components/es/components/button/index.js";
 import "@carbon/web-components/es/components/select/index.js";
 import "@carbon/web-components/es/components/text-input/index.js";
@@ -20,7 +21,10 @@ import "@carbon/web-components/es/components/overflow-menu/index.js";
 import "@carbon/web-components/es/components/content-switcher/index.js";
 import "@carbon/web-components/es/components/data-table/index.js";
 import "@carbon/web-components/es/components/date-picker/index.js";
-import "@carbon/web-components/es/components/notification/index.js";
+// Only the notifications carbonite uses: the barrel (notification/index.js)
+// also brings actionable and callout notifications, ~130 KB of styles.
+import "@carbon/web-components/es/components/notification/inline-notification.js";
+import "@carbon/web-components/es/components/notification/toast-notification.js";
 import "@carbon/web-components/es/components/pagination/index.js";
 import "@carbon/web-components/es/components/structured-list/index.js";
 import "@carbon/web-components/es/components/password-input/index.js";

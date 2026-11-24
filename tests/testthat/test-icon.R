@@ -23,9 +23,28 @@ test_that("carbon_icon() uses Carbon's size-specific artwork", {
   expect_false(identical(as.character(small), as.character(large)))
 })
 
-test_that("glyph-only icons render at any size", {
-  glyph_only <- carbonite:::carbon_icon_data$variants
-  expect_true(all(vapply(glyph_only, nrow, integer(1)) == 4L))
+test_that("every icon has exactly one artwork for each size", {
+  # Artworks are stored once, with the sizes they're for ("16,20,24,32")
+  artworks <- carbonite:::carbon_icon_data$artworks
+  icon_sizes <- unlist(lapply(seq_len(nrow(artworks)), function(i) {
+    paste(artworks$name[[i]], strsplit(artworks$sizes[[i]], ",", fixed = TRUE)[[1]])
+  }))
+  expected <- as.vector(outer(carbon_icon_names(), c(16, 20, 24, 32), paste))
+
+  expect_setequal(icon_sizes, expected)
+  expect_equal(anyDuplicated(icon_sizes), 0)
+})
+
+test_that("icons with different small-size artwork use it", {
+  artworks <- carbonite:::carbon_icon_data$artworks
+  several <- unique(artworks$name[duplicated(artworks$name)])
+  expect_true(length(several) > 0)
+
+  icon <- several[[1]]
+  expect_false(identical(
+    as.character(carbon_icon(icon, size = 16)),
+    gsub('width="32" height="32"', 'width="16" height="16"', as.character(carbon_icon(icon, size = 32)), fixed = TRUE)
+  ))
 })
 
 test_that("carbon_icon() with a title is announced as an image", {

@@ -92,13 +92,33 @@ stopifnot(
   !anyNA(icon_variants$svg)
 )
 
+# Most icons use the same artwork at every size (2705 of 2775 in @carbon/icons
+# 11.89), so store each distinct artwork once, with the sizes it's for:
+# `sizes` is e.g. "16,20,24,32". All in one data frame, rather than one per
+# icon, whose attributes would add as much as the artwork. This keeps the
+# package small.
+artworks <- aggregate(
+  size ~ name + view_box + svg,
+  data = icon_variants,
+  FUN = function(s) paste(sort(s), collapse = ",")
+)
+names(artworks)[names(artworks) == "size"] <- "sizes"
+
+stopifnot(
+  # Every icon still has exactly one artwork for each size
+  all(table(unlist(lapply(seq_len(nrow(artworks)), function(i) {
+    paste(artworks$name[[i]], strsplit(artworks$sizes[[i]], ",")[[1]])
+  }))) == 1),
+  nrow(icon_variants) == sum(lengths(strsplit(artworks$sizes, ",")))
+)
+
+artworks <- artworks[order(match(artworks$name, icon_index$name)), ]
+rownames(artworks) <- NULL
+
 carbon_icon_data <- list(
   version = icons_version,
   index = icon_index,
-  variants = split(
-    icon_variants[c("size", "view_box", "svg")],
-    factor(icon_variants$name, levels = icon_index$name)
-  )
+  artworks = artworks[c("name", "sizes", "view_box", "svg")]
 )
 
 save(carbon_icon_data, file = "R/sysdata.rda", compress = "xz")

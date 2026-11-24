@@ -1,25 +1,16 @@
 Package: carbonite
-Title: Components from the 'Carbon Design System' for 'shiny'
+Title: IBM's 'Carbon Design System' for 'shiny'
 Version: 0.1.0
 Authors@R: c(
     person("Evan", "Brand", , "etbrand@gmail.com", role = c("aut", "cre", "cph")),
-    person("IBM Corp.", role = "cph",
-           comment = "'Carbon Design System' web components, styles and icons; IBM Plex fonts"),
-    person("Google LLC", role = "cph", comment = "'Lit' library"),
-    person("Floating UI contributors", role = "cph", comment = "'Floating UI' library"),
-    person("OpenJS Foundation and other contributors", role = "cph", comment = "'lodash' library"),
-    person("Gregory", "Petrosyan", role = "cph", comment = "'flatpickr' library"),
-    person("Adobe", role = "cph", comment = "'@internationalized/number' library")
+    person("IBM Corp.", role = "cph", comment = "Carbon Design System assets")
   )
-Description: Build 'shiny' apps with the 'Carbon Design System'
-    <https://carbondesignsystem.com/>. Wraps IBM's '@carbon/web-components'
-    as 'shiny' inputs, outputs and layouts, including buttons, text, date
-    and time inputs, selects, sliders, data tables with sorting, selection,
-    pagination and expandable rows, modals, notifications, menus, tabs,
-    tiles and an application shell with side navigation.
+Description: 'shiny' bindings for IBM's 'Carbon Design System'
+    <https://carbondesignsystem.com/>. Wraps the 'Carbon' web components
+    ('@carbon/web-components') as 'shiny' inputs, outputs, and layouts.
 License: MIT + file LICENSE
 Copyright: See the file inst/COPYRIGHTS for the copyright holders and
-    licenses of the bundled 'Carbon Design System' code and fonts.
+    licenses of the bundled Carbon Design System code and fonts.
 URL: https://github.com/etbrand/carbonite
 BugReports: https://github.com/etbrand/carbonite/issues
 Depends:
@@ -31,6 +22,7 @@ Imports:
     shiny (>= 1.5.0),
     utils
 Encoding: UTF-8
+SysDataCompression: xz
 Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

@@ -42,3 +42,14 @@ test_that("every file a dependency loads exists in the installed package", {
     }
   }
 })
+
+test_that("the bundled fonts are exactly the ones the CSS uses", {
+  carbon_dir <- system.file("www/carbon", package = "carbonite")
+  css <- paste(readLines(file.path(carbon_dir, "carbonite.min.css"), warn = FALSE), collapse = "")
+
+  referenced <- unique(regmatches(css, gregexpr("fonts/[^)\"']+[.]woff2", css))[[1]])
+  bundled <- file.path("fonts", list.files(file.path(carbon_dir, "fonts")))
+
+  expect_true(length(referenced) > 0)
+  expect_setequal(referenced, bundled)
+})

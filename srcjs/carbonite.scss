@@ -4,7 +4,8 @@
 // It's the same modules minus `scss/components`:
 //   * config:  fonts are copied next to the CSS by the copy-plex-fonts plugin
 //              in vite.config.js (the default `~@ibm/plex` path is webpack-only)
-//   * reset, fonts, type: page basics and IBM Plex
+//   * reset, type: page basics and typography
+//   * fonts/sans, fonts/mono: the IBM Plex faces the components use (below)
 //   * grid:    .cds--css-grid / column classes (carbon_grid(), carbon_column())
 //   * layer, layout, zone: token helpers components rely on
 // plus the one component stylesheet used outside a shadow root:
@@ -13,7 +14,8 @@
 // here, e.g. @use "@carbon/styles/scss/components/<name>".
 @use "@carbon/styles/scss/config" with ($font-path: "fonts");
 @use "@carbon/styles/scss/reset";
-@use "@carbon/styles/scss/fonts";
+@use "@carbon/styles/scss/fonts/sans" as plex-sans;
+@use "@carbon/styles/scss/fonts/mono" as plex-mono;
 @use "@carbon/styles/scss/type";
 @use "@carbon/styles/scss/grid";
 @use "@carbon/styles/scss/layer";
@@ -41,6 +43,17 @@
 @include add-component-tokens(icon-indicator-tokens.$status-tokens);
 @include add-component-tokens(notification-tokens.$notification-tokens);
 @include add-component-tokens(tag-tokens.$tag-tokens);
+
+// IBM Plex: only the faces the components use, to keep the package small
+// (vite.config.js bundles exactly the font files these rules reference).
+// Carbon's default would also add Plex Serif (unused by components), italics
+// of every weight (rare; the browser slants the upright face instead), and
+// Mono Light/SemiBold: ~1 MB more. Components use Sans 300/400/600, and Mono
+// 400 for code-like text such as the time picker.
+@include plex-sans.light($styles: (normal));
+@include plex-sans.regular($styles: (normal));
+@include plex-sans.semibold($styles: (normal));
+@include plex-mono.regular($styles: (normal));
 
 :root,
 [data-carbon-theme="white"] {

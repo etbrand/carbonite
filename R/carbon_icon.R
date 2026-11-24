@@ -3,6 +3,20 @@
 
 .carbon_icon_sizes <- c(16L, 20L, 24L, 32L)
 
+# An icon's artwork (view_box, svg) at a size. Each distinct artwork is stored
+# once, with the sizes it's for, e.g. "16,20,24,32": most icons use one
+# artwork at every size.
+.icon_artwork <- function(name, size) {
+  artworks <- carbon_icon_data$artworks
+  rows <- which(artworks$name == name)
+  for_size <- vapply(
+    strsplit(artworks$sizes[rows], ",", fixed = TRUE),
+    function(sizes) as.character(size) %in% sizes,
+    logical(1)
+  )
+  artworks[rows[for_size], c("view_box", "svg")]
+}
+
 .check_icon_name <- function(name, arg = "name", call = rlang::caller_env()) {
   if (!rlang::is_string(name) || !nzchar(name)) {
     cli::cli_abort("{.arg {arg}} must be a single icon name, like {.val add}.", call = call)
@@ -85,8 +99,7 @@ carbon_icon <- function(name, size = 16, title = NULL, ...) {
     cli::cli_abort("{.arg title} must be a single string or {.code NULL}.")
   }
 
-  variants <- carbon_icon_data$variants[[name]]
-  variant <- variants[variants$size == size, ]
+  variant <- .icon_artwork(name, size)
 
   htmltools::tag(
     "svg",
