@@ -50,3 +50,5 @@ rsconnect/
 node_modules
 
 data-raw/minimal_*
+/.quarto/
+**/*.quarto_ipynb

@@ -10,7 +10,8 @@ carbon_page(
   theme = "white",
   sidebar = NULL,
   default_route = NULL,
-  header_content = NULL
+  header_content = NULL,
+  window_title = title
 )
 }
 \arguments{
@@ -30,6 +31,11 @@ route. Defaults to the first panel, if any.}
 
 \item{header_content}{Optional UI shown on the right of the header, e.g.
 a control that applies to every panel. See \code{carbon_header()}.}
+
+\item{window_title}{The page's title in the browser tab, bookmarks and
+history, as in \code{shiny::fluidPage()}. Defaults to \code{title}; give
+it when \code{title} isn't plain text, or to differ from the header.
+\code{NULL} for no title.}
 }
 \value{
 An HTML page suitable as a Shiny UI.

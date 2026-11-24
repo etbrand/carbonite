@@ -79,6 +79,10 @@ carbon_header <- function(
 #'   route. Defaults to the first panel, if any.
 #' @param header_content Optional UI shown on the right of the header, e.g.
 #'   a control that applies to every panel. See \code{carbon_header()}.
+#' @param window_title The page's title in the browser tab, bookmarks and
+#'   history, as in \code{shiny::fluidPage()}. Defaults to \code{title}; give
+#'   it when \code{title} isn't plain text, or to differ from the header.
+#'   \code{NULL} for no title.
 #'
 #' @return An HTML page suitable as a Shiny UI.
 #'
@@ -111,8 +115,16 @@ carbon_page <- function(
   theme = "white",
   sidebar = NULL,
   default_route = NULL,
-  header_content = NULL
+  header_content = NULL,
+  window_title = title
 ) {
+  if (!is.null(window_title) && !rlang::is_string(window_title)) {
+    cli::cli_abort(c(
+      "{.arg window_title} must be a single string or {.code NULL}.",
+      "i" = "It defaults to {.arg title}; when that isn't plain text, give {.arg window_title} as well."
+    ))
+  }
+
   content <- rlang::list2(...)
   panel_ids <- .panel_ids(content)
 
@@ -141,7 +153,9 @@ carbon_page <- function(
     # (~980px) and shrink it to fit, so Carbon's breakpoints never apply.
     # Shiny moves this into the document's <head>.
     htmltools::tags$head(
-      htmltools::tags$meta(name = "viewport", content = "width=device-width, initial-scale=1")
+      htmltools::tags$meta(name = "viewport", content = "width=device-width, initial-scale=1"),
+      # The browser tab's title, as shiny::fluidPage(title = ) sets it
+      if (!is.null(window_title)) htmltools::tags$title(window_title)
     ),
     carbon_dependency(),
     carbon_page_dependency(),

@@ -1,14 +1,15 @@
 # carbonite
 
-Build [Shiny](https://shiny.posit.co/) apps with IBM's
+[Shiny](https://shiny.posit.co/) bindings for IBM's
 [Carbon Design System](https://carbondesignsystem.com/).
 
-carbonite wraps Carbon's official web components (`@carbon/web-components`)
-as Shiny inputs, outputs and layouts. You write ordinary Shiny code, and get
-Carbon's components, themes, icons and typography, with everything bundled
-in the package, so apps work offline and need no CDN.
+`carbonite` wraps Carbon's official web components (`@carbon/web-components`)
+as Shiny inputs, outputs and layouts. Use Carbon for Shiny apps, without managing JavaScript dependencies or CDN assets.
 
-![A carbonite app with a side navigation, a select, a range slider and a plot](man/figures/README-example.png)
+[![World Data Dashboard, a carbonite app: a dark Carbon page with side navigation, headline figure tiles, tabs and a searchable table of countries](man/figures/README-demo-glance.webp)](https://evan-brand-worlddata.share.connect.posit.cloud/)
+
+*[World Data Dashboard](https://evan-brand-worlddata.share.connect.posit.cloud/),
+built with carbonite. Data from the World Bank and Wikidata.*
 
 ## Installation
 
@@ -75,10 +76,21 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
+![The example app: a side navigation, a select, a range slider and a plot](man/figures/README-example.png)
+
 carbonite's inputs work like Shiny's: read them with `input$<id>`, react to
 them with `observeEvent()`, and change them from the server with the
 matching `update_carbon_*()` function. They also work in Shiny modules, and
 outside `carbon_page()` in any Shiny UI.
+
+## Demo app
+
+[World Data Dashboard](https://evan-brand-worlddata.share.connect.posit.cloud/)
+is a larger carbonite app in Carbon's dark `"g100"` theme: country
+profiles, charts of social and economic indicators, and comparisons, using data from the World Bank and Wikidata (view source code at
+[etbrand/worlddata](https://github.com/etbrand/worlddata)).
+
+[![The World Data Dashboard's economic indicators page: Carbon tiles with a treemap of economies and a chart of inflation](man/figures/README-demo-economic.webp)](https://evan-brand-worlddata.share.connect.posit.cloud/)
 
 ## Components
 

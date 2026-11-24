@@ -30,6 +30,35 @@ test_that("carbon_page() sets a viewport for phones, in the document head", {
   expect_false(grepl("viewport", rendered$html, fixed = TRUE))
 })
 
+test_that("carbon_page() titles the browser tab with its title, in the document head", {
+  rendered <- htmltools::renderTags(carbon_page(title = "World Data"))
+
+  expect_match(as.character(rendered$head), "<title>World Data</title>", fixed = TRUE)
+  expect_false(grepl("<title>", rendered$html, fixed = TRUE))
+  # The header still shows it
+  expect_match(rendered$html, "World Data", fixed = TRUE)
+})
+
+test_that("window_title sets a different tab title, or none", {
+  head_of <- function(...) as.character(htmltools::renderTags(carbon_page(...))$head)
+
+  expect_match(head_of(title = "WD", window_title = "World Data Dashboard"), "<title>World Data Dashboard</title>", fixed = TRUE)
+  expect_false(grepl("<title>", head_of(title = "WD", window_title = NULL), fixed = TRUE))
+  expect_match(head_of(), "<title>Application</title>", fixed = TRUE)
+})
+
+test_that("a title that isn't plain text needs a window_title", {
+  logo_title <- htmltools::tagList(carbon_icon("earth"), "World Data")
+
+  expect_error(carbon_page(title = logo_title), "window_title")
+  expect_match(
+    as.character(htmltools::renderTags(carbon_page(title = logo_title, window_title = "World Data"))$head),
+    "<title>World Data</title>",
+    fixed = TRUE
+  )
+  expect_error(carbon_page(window_title = c("a", "b")), "single string")
+})
+
 test_that("carbon_page() shows non-panel content as is", {
   html <- render(carbon_page(htmltools::h1("Hello"), htmltools::p("World")))
 
