@@ -6,7 +6,7 @@ Authors@R: c(
     person("IBM Corp.", role = "cph", comment = "Carbon Design System assets")
   )
 Description: 'shiny' bindings for IBM's 'Carbon Design System'
-    <https://carbondesignsystem.com/>. Wraps the 'Carbon' web components
+    <https://www.carbondesignsystem.com/>. Wraps the 'Carbon' web components
     ('@carbon/web-components') as 'shiny' inputs, outputs, and layouts.
 License: MIT + file LICENSE
 Copyright: See the file inst/COPYRIGHTS for the copyright holders and

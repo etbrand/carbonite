@@ -36,7 +36,7 @@
 #'
 #' carbon_tile(
 #'   "Read the documentation",
-#'   href = "https://carbondesignsystem.com",
+#'   href = "https://www.carbondesignsystem.com/",
 #'   target = "_blank"
 #' )
 #'

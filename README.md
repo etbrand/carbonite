@@ -1,7 +1,7 @@
 # carbonite
 
 [Shiny](https://shiny.posit.co/) bindings for IBM's
-[Carbon Design System](https://carbondesignsystem.com/).
+[Carbon Design System](https://www.carbondesignsystem.com/).
 
 `carbonite` wraps Carbon's official web components (`@carbon/web-components`)
 as Shiny inputs, outputs and layouts. Use Carbon for Shiny apps, without managing JavaScript dependencies or CDN assets.

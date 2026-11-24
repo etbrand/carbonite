@@ -19,7 +19,10 @@
 
 .check_icon_name <- function(name, arg = "name", call = rlang::caller_env()) {
   if (!rlang::is_string(name) || !nzchar(name)) {
-    cli::cli_abort("{.arg {arg}} must be a single icon name, like {.val add}.", call = call)
+    cli::cli_abort(
+      "{.arg {arg}} must be a single icon name, like {.val add}.",
+      call = call
+    )
   }
 
   index <- carbon_icon_data$index
@@ -33,7 +36,11 @@
   # spellings ("chevron-down" -> chevron--down).
   needle <- tolower(name)
   other_case <- index$name[tolower(index$name) == needle]
-  word_pattern <- paste0("(^|-)", gsub("([][{}()+*^$|\\\\?.])", "\\\\\\1", needle), "(-|$)")
+  word_pattern <- paste0(
+    "(^|-)",
+    gsub("([][{}()+*^$|\\\\?.])", "\\\\\\1", needle),
+    "(-|$)"
+  )
   as_word <- index$name[grepl(word_pattern, index$name)]
   by_alias <- index$name[vapply(
     strsplit(tolower(index$aliases), "|", fixed = TRUE),
@@ -43,16 +50,26 @@
   containing <- index$name[grepl(needle, index$name, fixed = TRUE)]
   containing <- containing[order(nchar(containing))]
   distance <- utils::adist(needle, index$name)[1, ]
-  close <- index$name[order(distance)][sort(distance) <= max(1, nchar(needle) %/% 5)]
+  close <- index$name[order(distance)][
+    sort(distance) <= max(1, nchar(needle) %/% 5)
+  ]
   suggestions <- utils::head(
-    unique(c(other_case, as_word[order(nchar(as_word))], by_alias, containing, close)),
+    unique(c(
+      other_case,
+      as_word[order(nchar(as_word))],
+      by_alias,
+      containing,
+      close
+    )),
     5
   )
 
   cli::cli_abort(
     c(
       "Unknown Carbon icon {.val {name}}.",
-      if (length(suggestions)) c("i" = "Did you mean {.or {.val {suggestions}}}?"),
+      if (length(suggestions)) {
+        c("i" = "Did you mean {.or {.val {suggestions}}}?")
+      },
       "i" = "Search the icons with {.run carbonite::carbon_icon_names(\"{name}\")}."
     ),
     call = call
@@ -66,7 +83,7 @@
 #'
 #' The icon is drawn in the current text colour (\code{fill="currentColor"}),
 #' so it follows the surrounding text and the Carbon theme. Browse the icons
-#' at \url{https://carbondesignsystem.com/elements/icons/library/}, or search
+#' at \url{https://www.carbondesignsystem.com/building-blocks/foundations/icons/library/}, or search
 #' them with \code{carbon_icon_names()}.
 #'
 #' @param name The icon's name, e.g. \code{"add"}, \code{"trash-can"}, or
@@ -161,7 +178,13 @@ carbon_icon_names <- function(pattern = NULL) {
 }
 
 # An icon for a component's `icon` slot, from a name or a carbon_icon().
-.slot_icon <- function(icon, slot = "icon", size = 16, arg = "icon", call = rlang::caller_env()) {
+.slot_icon <- function(
+  icon,
+  slot = "icon",
+  size = 16,
+  arg = "icon",
+  call = rlang::caller_env()
+) {
   if (is.character(icon)) {
     .check_icon_name(icon, arg = arg, call = call)
     return(carbon_icon(icon, size = size, slot = slot))

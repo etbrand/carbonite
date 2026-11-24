@@ -29,7 +29,7 @@ icons you use are sent to the browser.
 \details{
 The icon is drawn in the current text colour (\code{fill="currentColor"}),
 so it follows the surrounding text and the Carbon theme. Browse the icons
-at \url{https://carbondesignsystem.com/elements/icons/library/}, or search
+at \url{https://www.carbondesignsystem.com/building-blocks/foundations/icons/library/}, or search
 them with \code{carbon_icon_names()}.
 }
 \examples{
