@@ -1,3 +1,10 @@
+# carbonite (development version)
+
+* `carbon_page()` and `carbon_header()` gain `logo`: a Carbon icon name or a
+  tag (an SVG or `img()`) shown before the title. On small screens the header
+  shows only the logo. The header title now stays on one line, clipping
+  instead of wrapping when the header is narrow.
+
 # carbonite 0.1.0
 
 * Initial CRAN submission.

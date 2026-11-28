@@ -162,3 +162,52 @@ test_that("carbon_page puts header_content on the right of the header", {
   expect_length(find_tags(area[[1]], "cds-select#region"), 1)
   expect_length(find_tags(carbon_page(carbon_panel("home", "Home")), ".carbonite-header-content"), 0)
 })
+
+test_that("the header title is in its own span, with no logo by default", {
+  name <- find_tags(carbon_header("Sales"), "cds-header-name")[[1]]
+
+  expect_null(htmltools::tagGetAttribute(name, "class"))
+  expect_length(find_tags(name, ".carbonite-header-logo"), 0)
+  title <- find_tags(name, "span.carbonite-header-title")
+  expect_length(title, 1)
+  expect_match(render(title[[1]]), ">Sales</span>", fixed = TRUE)
+})
+
+test_that("an icon-name logo renders that icon before the title", {
+  name <- find_tags(carbon_header("Sales", logo = "earth--filled"), "cds-header-name")[[1]]
+
+  expect_equal(htmltools::tagGetAttribute(name, "class"), "carbonite-header-name--logo")
+  logo <- find_tags(name, "span.carbonite-header-logo")
+  expect_length(logo, 1)
+  # Decorative: the title names the link
+  expect_equal(htmltools::tagGetAttribute(logo[[1]], "aria-hidden"), "true")
+  expect_equal(render(logo[[1]]$children), render(carbon_icon("earth--filled", size = 20)))
+
+  # Logo first, then the title
+  html <- render(name)
+  expect_lt(
+    regexpr("carbonite-header-logo", html, fixed = TRUE),
+    regexpr("carbonite-header-title", html, fixed = TRUE)
+  )
+})
+
+test_that("a tag logo is used as is", {
+  img <- htmltools::tags$img(src = "logo.png", alt = "", height = 24)
+  logo <- find_tags(carbon_header("Sales", logo = img), ".carbonite-header-logo")[[1]]
+
+  expect_equal(render(logo$children), render(img))
+})
+
+test_that("logo is validated", {
+  expect_error(carbon_header(logo = "not-an-icon-xyz"), "Unknown Carbon icon")
+  expect_error(carbon_header(logo = 1), "must be an icon name")
+  expect_error(carbon_page(logo = c("a", "b")), "logo")
+})
+
+test_that("carbon_page passes logo to the header", {
+  page <- carbon_page(carbon_panel("home", "Home"), title = "Sales", logo = "earth--filled")
+
+  header <- find_tags(page, "cds-header")[[1]]
+  expect_length(find_tags(header, ".carbonite-header-logo svg"), 1)
+  expect_length(find_tags(carbon_page(carbon_panel("home", "Home")), ".carbonite-header-logo"), 0)
+})

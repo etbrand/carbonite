@@ -4,7 +4,12 @@
 \alias{carbon_header}
 \title{Carbon Design System Header}
 \usage{
-carbon_header(title = "Application", menu_button = TRUE, content = NULL)
+carbon_header(
+  title = "Application",
+  menu_button = TRUE,
+  content = NULL,
+  logo = NULL
+)
 }
 \arguments{
 \item{title}{The application name shown in the header.}
@@ -16,6 +21,13 @@ there is a \code{sidebar}.}
 \item{content}{Optional UI shown on the right of the header, e.g. a
 \code{carbon_select()} with \code{size = "sm"} and no label, or
 buttons. The header is 3rem (48px) tall.}
+
+\item{logo}{Optional logo shown before the title: the name of a Carbon
+icon (see \code{carbon_icon_names()}), or a tag such as
+\code{carbon_icon()}, an inline SVG, or \code{htmltools::img()}. Images
+are scaled to the header, at most 2rem (32px) tall. On small screens
+(under 42rem, 672px) the header shows only the logo, with the title kept
+for screen readers, so a long title doesn't crowd the header.}
 }
 \value{
 An \code{htmltools::tagList} containing a Carbon header.
@@ -32,5 +44,7 @@ carbon_header(
   "Sales Dashboard",
   content = carbon_select("year", choices = 2024:2026, size = "sm")
 )
+
+carbon_header("World Data Dashboard", logo = "earth--filled")
 
 }

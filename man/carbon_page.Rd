@@ -11,7 +11,8 @@ carbon_page(
   sidebar = NULL,
   default_route = NULL,
   header_content = NULL,
-  window_title = title
+  window_title = title,
+  logo = NULL
 )
 }
 \arguments{
@@ -36,6 +37,9 @@ a control that applies to every panel. See \code{carbon_header()}.}
 history, as in \code{shiny::fluidPage()}. Defaults to \code{title}; give
 it when \code{title} isn't plain text, or to differ from the header.
 \code{NULL} for no title.}
+
+\item{logo}{Optional logo shown in the header before \code{title}: a
+Carbon icon name or a tag. See \code{carbon_header()}.}
 }
 \value{
 An HTML page suitable as a Shiny UI.

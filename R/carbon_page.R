@@ -1,3 +1,19 @@
+# The header logo: decorative (the title names the link), so hidden from
+# screen readers.
+.header_logo <- function(logo, call = rlang::caller_env()) {
+  if (rlang::is_string(logo)) {
+    .check_icon_name(logo, arg = "logo", call = call)
+    logo <- carbon_icon(logo, size = 20)
+  } else if (!inherits(logo, c("shiny.tag", "shiny.tag.list", "html"))) {
+    cli::cli_abort(
+      "{.arg logo} must be an icon name, like {.val earth--filled}, or a tag, such as {.fn carbon_icon} or {.fn htmltools::img}.",
+      call = call
+    )
+  }
+
+  htmltools::tags$span(class = "carbonite-header-logo", `aria-hidden` = "true", logo)
+}
+
 cds_header <- function(...) {
   .build_carbon_tag("cds-header", list(...))
 }
@@ -22,6 +38,12 @@ cds_header_name <- function(..., href = "#") {
 #' @param content Optional UI shown on the right of the header, e.g. a
 #'   \code{carbon_select()} with \code{size = "sm"} and no label, or
 #'   buttons. The header is 3rem (48px) tall.
+#' @param logo Optional logo shown before the title: the name of a Carbon
+#'   icon (see \code{carbon_icon_names()}), or a tag such as
+#'   \code{carbon_icon()}, an inline SVG, or \code{htmltools::img()}. Images
+#'   are scaled to the header, at most 2rem (32px) tall. On small screens
+#'   (under 42rem, 672px) the header shows only the logo, with the title kept
+#'   for screen readers, so a long title doesn't crowd the header.
 #'
 #' @return An \code{htmltools::tagList} containing a Carbon header.
 #'
@@ -33,17 +55,26 @@ cds_header_name <- function(..., href = "#") {
 #'   content = carbon_select("year", choices = 2024:2026, size = "sm")
 #' )
 #'
+#' carbon_header("World Data Dashboard", logo = "earth--filled")
+#'
 #' @export
 carbon_header <- function(
   title = "Application",
   menu_button = TRUE,
-  content = NULL
+  content = NULL,
+  logo = NULL
 ) {
   htmltools::tagList(
     cds_header(
       if (menu_button) htmltools::tag("cds-header-menu-button", list()),
+      # The logo and title are separate elements inside the one name link, so
+      # carbonite.scss can lay them out (Carbon puts its slot in an inline
+      # span, which can't be styled from outside) and drop the title text on
+      # small screens.
       cds_header_name(
-        title,
+        class = if (!is.null(logo)) "carbonite-header-name--logo",
+        if (!is.null(logo)) .header_logo(logo),
+        htmltools::tags$span(class = "carbonite-header-title", title),
         href = "#"
       ),
       # Carbon's global-actions area, pushed to the right (carbonite.scss)
@@ -83,6 +114,8 @@ carbon_header <- function(
 #'   history, as in \code{shiny::fluidPage()}. Defaults to \code{title}; give
 #'   it when \code{title} isn't plain text, or to differ from the header.
 #'   \code{NULL} for no title.
+#' @param logo Optional logo shown in the header before \code{title}: a
+#'   Carbon icon name or a tag. See \code{carbon_header()}.
 #'
 #' @return An HTML page suitable as a Shiny UI.
 #'
@@ -116,7 +149,8 @@ carbon_page <- function(
   sidebar = NULL,
   default_route = NULL,
   header_content = NULL,
-  window_title = title
+  window_title = title,
+  logo = NULL
 ) {
   if (!is.null(window_title) && !rlang::is_string(window_title)) {
     cli::cli_abort(c(
@@ -166,7 +200,7 @@ carbon_page <- function(
       class = if (.is_rail(sidebar)) "carbon-app--rail",
       `data-default-route` = default_route,
       # The menu button only toggles the side navigation
-      carbon_header(title, menu_button = !is.null(sidebar), content = header_content),
+      carbon_header(title, menu_button = !is.null(sidebar), content = header_content, logo = logo),
       sidebar,
       htmltools::tags$main(
         id = "carbon-main",

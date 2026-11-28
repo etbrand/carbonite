@@ -241,6 +241,60 @@ cds-accordion-item[disabled]> :not([slot]) {
     }
 }
 
+// carbon_header(): the name link holds an optional logo and the title. The
+// title stays on one line; when the header is too narrow the name shrinks
+// and clips rather than wrapping out of the 3rem header.
+cds-header-name {
+    flex: 0 1 auto;
+    min-inline-size: 0;
+    overflow: hidden;
+}
+
+.carbonite-header-title {
+    white-space: nowrap;
+}
+
+// carbon_header(logo = ): an icon, SVG or image before the title, centred
+// and scaled to the header
+.carbonite-header-logo {
+    display: inline-flex;
+    align-items: center;
+    margin-inline-end: var(--cds-spacing-03, 0.5rem);
+    vertical-align: middle;
+
+    svg,
+    img {
+        display: block;
+        flex-shrink: 0;
+        max-block-size: 2rem;
+    }
+
+    // An image keeps its aspect ratio when capped
+    img {
+        inline-size: auto;
+    }
+}
+
+// On small screens (Carbon's md breakpoint, where it narrows the name's
+// padding) only the logo shows; the title is kept for screen readers.
+@media (max-width: 41.98rem) {
+    .carbonite-header-name--logo {
+        .carbonite-header-logo {
+            margin-inline-end: 0;
+        }
+
+        .carbonite-header-title {
+            position: absolute;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            inline-size: 1px;
+            block-size: 1px;
+            margin: -1px;
+            white-space: nowrap;
+        }
+    }
+}
+
 // carbon_table_column(action = TRUE): cell content as a link-styled button
 // (see srcjs/table-cell-action.js). Carbon's link colors and focus ring.
 .carbonite-cell-action {
