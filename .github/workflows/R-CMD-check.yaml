@@ -3,7 +3,9 @@
 on:
   push:
     branches: [main, master]
+    paths: ["r-shiny/**", "srcjs/**", ".github/workflows/R-CMD-check.yaml"]
   pull_request:
+    paths: ["r-shiny/**", "srcjs/**", ".github/workflows/R-CMD-check.yaml"]
 
 name: R-CMD-check.yaml
 
@@ -43,8 +45,10 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
+          working-directory: r-shiny
 
       - uses: r-lib/actions/check-r-package@v2
         with:
+          working-directory: r-shiny
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'

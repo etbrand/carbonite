@@ -56,6 +56,13 @@ jobs:
 
     steps:
       - uses: r-hub/actions/checkout@v1
+      # carbonite edit: R-hub's actions look for the package at the root
+      - name: Move the R package (r-shiny/) to the root
+        shell: bash
+        run: |
+          shopt -s dotglob extglob
+          rm -rf !(r-shiny|.git|.github)
+          mv r-shiny/* . && rmdir r-shiny
       - uses: r-hub/actions/platform-info@v1
         with:
           token: ${{ secrets.RHUB_TOKEN }}
@@ -81,6 +88,13 @@ jobs:
 
     steps:
       - uses: r-hub/actions/checkout@v1
+      # carbonite edit: R-hub's actions look for the package at the root
+      - name: Move the R package (r-shiny/) to the root
+        shell: bash
+        run: |
+          shopt -s dotglob extglob
+          rm -rf !(r-shiny|.git|.github)
+          mv r-shiny/* . && rmdir r-shiny
       - uses: r-hub/actions/setup-r@v1
         with:
           job-config: ${{ matrix.config.job-config }}

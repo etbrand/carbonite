@@ -49,6 +49,6 @@ po/*~
 rsconnect/
 node_modules
 
-data-raw/minimal_*
+r-shiny/data-raw/minimal_*
 /.quarto/
 **/*.quarto_ipynb

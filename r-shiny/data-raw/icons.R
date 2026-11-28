@@ -1,7 +1,7 @@
 # Build the Carbon icon data used by carbon_icon() (saved to R/sysdata.rda).
 #
-# Run from the package root after installing or updating @carbon/icons in
-# srcjs/ (`cd srcjs && npm install`):
+# Run from the R package root (r-shiny/) after installing or updating @carbon/icons
+# in the repository's srcjs/ (`cd ../srcjs && npm install`):
 #
 #   Rscript data-raw/icons.R
 #
@@ -10,8 +10,8 @@
 # sizes reuse the 32px artwork scaled down; some icons have separate
 # small-size artwork, which is why every size is kept.
 
-metadata_path <- "srcjs/node_modules/@carbon/icons/metadata.json"
-package_path <- "srcjs/node_modules/@carbon/icons/package.json"
+metadata_path <- "../srcjs/node_modules/@carbon/icons/metadata.json"
+package_path <- "../srcjs/node_modules/@carbon/icons/package.json"
 
 stopifnot(file.exists(metadata_path))
 

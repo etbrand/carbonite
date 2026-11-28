@@ -63,7 +63,7 @@ export default defineConfig({
             fileName: () => "carbonite.min.js",
             name: "Carbonite"
         },
-        outDir: "../inst/www/carbon",
+        outDir: "../r-shiny/inst/www/carbon",
         emptyOutDir: true,
         rollupOptions: {
             output: {

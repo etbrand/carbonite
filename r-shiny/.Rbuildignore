@@ -1,12 +1,7 @@
 ^renv$
 ^renv\.lock$
-^srcjs$
 ^data-raw$
 ^\.Rprofile$
-^\.vscode$
-^\.claude$
-^\.github$
-^CLAUDE\.md$
-^LICENSE\.md$
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
+^\.github$
